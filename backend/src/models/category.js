@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import user from "../models/user.js";
 
 const categorySchema = new mongoose.Schema(
   {
