@@ -22,14 +22,17 @@ dotenv.config();
 import db from "./config/db.js";
 import router from "./routes/auth.routes.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
+import categoryRoutes from "./routes/category.routes.js";
 
 db();
+
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // Mount auth routes
+app.use("/api/categories", categoryRoutes);
 app.use("/api/auth", router);
 
 // Error handling (must be last)
