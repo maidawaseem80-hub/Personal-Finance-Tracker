@@ -1,31 +1,36 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const budgetSchema = new mongoose.Schema(
   {
-    userId: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    categoryId: {
+    category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: false,
     },
-    limitAmount: {
+    amount: {
       type: Number,
+      required: true,
+    },
+    period: {
+      type: String,
+      enum: ["weekly", "monthly", "yearly"],
       required: true,
     },
     month: {
       type: Number,
-      required: true,
+      required: false,
     },
     year: {
       type: Number,
-      required: true,
+      required: false,
     },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Budget", budgetSchema);
+export default mongoose.model("Budget", budgetSchema);
