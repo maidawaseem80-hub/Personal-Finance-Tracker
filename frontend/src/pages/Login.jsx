@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./Login.css";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -14,40 +15,49 @@ function Login() {
   };
 
   return (
-    <div>
-      <h1>Personal Finance Tracker</h1>
+    <main className="login-page">
+      <div className="login-container">
+        <div className="login-header">
+          <h1>Personal Finance Tracker</h1>
 
-      <h2>Welcome Back</h2>
-      <p>Sign in to your account</p>
+          <h2>Welcome Back</h2>
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-          />
+          <p>Sign in to your account</p>
         </div>
 
-        <div>
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-          />
-        </div>
+        <form className="login-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
 
-        <button type="submit">Sign In</button>
-      </form>
-    </div>
+            <input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+
+            <input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
+          </div>
+
+          <button className="login-button" type="submit">
+            Sign In
+          </button>
+        </form>
+      </div>
+    </main>
   );
 }
 
