@@ -1,19 +1,18 @@
-const Budget = require("../models/Budget");
+import Budget from "../models/budget.js";
 
 const createBudget = async (req, res) => {
   try {
-    const { userId, categoryId, limitAmount, month, year } = req.body;
+    const { user, category, amount, period } = req.body;
 
-    if (!userId || !limitAmount || !month || !year) {
+    if (!user || !amount || !period) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     const budget = await Budget.create({
-      userId,
-      categoryId: categoryId || null,
-      limitAmount,
-      month,
-      year,
+      user,
+      category: category || null,
+      amount,
+      period,
     });
 
     res.status(201).json(budget);
@@ -24,13 +23,13 @@ const createBudget = async (req, res) => {
 
 const getBudgets = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const { user } = req.query;
 
-    if (!userId) {
-      return res.status(400).json({ message: "userId is required" }); 
+    if (!user) {
+      return res.status(400).json({ message: "user is required" });
     }
 
-    const budgets = await Budget.find({ userId });
+    const budgets = await Budget.find({ user });
 
     res.status(200).json(budgets);
   } catch (error) {
@@ -73,4 +72,4 @@ const deleteBudget = async (req, res) => {
   }
 };
 
-module.exports = { createBudget , getBudgets , updateBudget , deleteBudget };
+export { createBudget, getBudgets, updateBudget, deleteBudget };
