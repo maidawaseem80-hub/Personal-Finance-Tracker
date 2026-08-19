@@ -1,14 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const budgetRoutes = require("./routes/budgetRoutes");
 require("dotenv").config();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use("/api/budgets", budgetRoutes);
+
 
 app.get("/", (req, res) => {
   res.json({
