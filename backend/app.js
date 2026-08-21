@@ -8,6 +8,10 @@ import router from "./src/routes/auth.routes.js";
 import { notFound, errorHandler } from "./src/middleware/errorHandler.js";
 import categoryRoutes from "./src/routes/category.routes.js";
 import transactionRoutes from "./src/routes/transaction.routes.js";
+import budgetRoutes from "./src/routes/budget.routes.js";
+import alertRoutes from "./src/routes/alert.routes.js";
+import dashboardRoutes from "./src/routes/dashboard.routes.js";
+import exportRoutes from "./src/routes/export.routes.js";
 db();
 
 
@@ -19,6 +23,10 @@ app.use(express.json());
 app.use("/api/categories", categoryRoutes);
 app.use("/api/auth", router);
 app.use("/api/transactions", transactionRoutes);
+app.use("/api/budgets", budgetRoutes);
+app.use("/api/alerts", alertRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/export", exportRoutes);
 
 // Error handling (must be last)
 app.use(notFound);
