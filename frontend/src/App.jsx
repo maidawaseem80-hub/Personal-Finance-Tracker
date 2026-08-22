@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import Budgets from "./pages/Budgets";
 import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 
 import DashboardLayout from "./layouts/DashboardLayout";
 import { TransactionProvider } from "./context/TransactionContext";
@@ -35,6 +36,7 @@ function App() {
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/budgets" element={<Budgets />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>
