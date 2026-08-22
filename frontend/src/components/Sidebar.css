@@ -40,3 +40,8 @@
   text-align: center;
   font-size: 18px;
 }
+
+.sidebar-item.active {
+  background-color: #2563eb;
+  color: #ffffff;
+}

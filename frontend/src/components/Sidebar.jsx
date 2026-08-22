@@ -1,34 +1,60 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import "./Sidebar.css";
 
 function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-menu">
-        <Link to="/" className="sidebar-item active">
+        <NavLink
+          to="/"
+          end
+          className={({ isActive }) =>
+            `sidebar-item ${isActive ? "active" : ""}`
+          }
+        >
           <span>📊</span>
           <span>Dashboard</span>
-        </Link>
+        </NavLink>
 
-        <Link to="/transactions" className="sidebar-item">
+        <NavLink
+          to="/transactions"
+          className={({ isActive }) =>
+            `sidebar-item ${isActive ? "active" : ""}`
+          }
+        >
           <span>💳</span>
           <span>Transactions</span>
-        </Link>
+        </NavLink>
 
-        <Link to="/budgets" className="sidebar-item">
+        <NavLink
+          to="/budgets"
+          className={({ isActive }) =>
+            `sidebar-item ${isActive ? "active" : ""}`
+          }
+        >
           <span>💰</span>
           <span>Budgets</span>
-        </Link>
+        </NavLink>
 
-        <Link to="/reports" className="sidebar-item">
+        <NavLink
+          to="/reports"
+          className={({ isActive }) =>
+            `sidebar-item ${isActive ? "active" : ""}`
+          }
+        >
           <span>📈</span>
           <span>Reports</span>
-        </Link>
+        </NavLink>
 
-        <Link to="/settings" className="sidebar-item">
+        <NavLink
+          to="/settings"
+          className={({ isActive }) =>
+            `sidebar-item ${isActive ? "active" : ""}`
+          }
+        >
           <span>⚙️</span>
           <span>Settings</span>
-        </Link>
+        </NavLink>
       </div>
     </aside>
   );
