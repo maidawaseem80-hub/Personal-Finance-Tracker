@@ -1,17 +1,15 @@
 import { useMemo, useState } from "react";
 import "./Transactions.css";
+import { useTransactions } from "../context/TransactionContext";
 
 function Transactions() {
-  const [transactions, setTransactions] = useState([
-    {
-      id: 1,
-      description: "Sample Transaction",
-      category: "Food",
-      date: "2026-08-20",
-      type: "expense",
-      amount: 2500,
-    },
-  ]);
+  const {
+    transactions,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    transactionSummary,
+  } = useTransactions();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
@@ -99,32 +97,18 @@ function Transactions() {
       return;
     }
 
-    if (editingTransaction) {
-      setTransactions((previous) =>
-        previous.map((transaction) =>
-          transaction.id === editingTransaction.id
-            ? {
-                ...transaction,
-                description,
-                amount,
-                type: formData.type,
-                category,
-                date: formData.date,
-              }
-            : transaction
-        )
-      );
-    } else {
-      const newTransaction = {
-        id: Date.now(),
-        description,
-        amount,
-        type: formData.type,
-        category,
-        date: formData.date,
-      };
+    const transactionData = {
+      description,
+      amount,
+      type: formData.type,
+      category,
+      date: formData.date,
+    };
 
-      setTransactions((previous) => [newTransaction, ...previous]);
+    if (editingTransaction) {
+      updateTransaction(editingTransaction.id, transactionData);
+    } else {
+      addTransaction(transactionData);
     }
 
     handleCloseForm();
@@ -143,12 +127,7 @@ function Transactions() {
       return;
     }
 
-    setTransactions((previous) =>
-      previous.filter(
-        (transaction) => transaction.id !== transactionToDelete.id
-      )
-    );
-
+    deleteTransaction(transactionToDelete.id);
     setTransactionToDelete(null);
   };
 
@@ -158,6 +137,10 @@ function Transactions() {
       month: "short",
       year: "numeric",
     });
+  };
+
+  const formatCurrency = (amount) => {
+    return `Rs. ${amount.toLocaleString()}`;
   };
 
   return (
@@ -176,6 +159,50 @@ function Transactions() {
         >
           + Add Transaction
         </button>
+      </div>
+
+      {/* Transaction Summary */}
+      <div className="transaction-summary-grid">
+        <div className="transaction-summary-card">
+          <div className="transaction-summary-icon income-icon">
+            ↑
+          </div>
+
+          <div className="transaction-summary-content">
+            <span>Total Income</span>
+            <h2>{formatCurrency(transactionSummary.totalIncome)}</h2>
+          </div>
+        </div>
+
+        <div className="transaction-summary-card">
+          <div className="transaction-summary-icon expense-icon">
+            ↓
+          </div>
+
+          <div className="transaction-summary-content">
+            <span>Total Expenses</span>
+            <h2>{formatCurrency(transactionSummary.totalExpenses)}</h2>
+          </div>
+        </div>
+
+        <div className="transaction-summary-card">
+          <div className="transaction-summary-icon balance-icon">
+            Rs
+          </div>
+
+          <div className="transaction-summary-content">
+            <span>Current Balance</span>
+            <h2
+              className={
+                transactionSummary.currentBalance >= 0
+                  ? "balance-positive"
+                  : "balance-negative"
+              }
+            >
+              {formatCurrency(transactionSummary.currentBalance)}
+            </h2>
+          </div>
+        </div>
       </div>
 
       {/* Add / Edit Transaction Modal */}
@@ -213,7 +240,6 @@ function Transactions() {
             </div>
 
             <form onSubmit={handleSubmit} className="transaction-form">
-              {/* Description */}
               <div className="transaction-form-group">
                 <label htmlFor="description">Description</label>
 
@@ -228,7 +254,6 @@ function Transactions() {
                 />
               </div>
 
-              {/* Amount + Type */}
               <div className="transaction-form-row">
                 <div className="transaction-form-group">
                   <label htmlFor="amount">Amount</label>
@@ -261,7 +286,6 @@ function Transactions() {
                 </div>
               </div>
 
-              {/* Category + Date */}
               <div className="transaction-form-row">
                 <div className="transaction-form-group">
                   <label htmlFor="category">Category</label>
@@ -291,7 +315,6 @@ function Transactions() {
                 </div>
               </div>
 
-              {/* Form Actions */}
               <div className="transaction-form-actions">
                 <button
                   type="button"
@@ -359,7 +382,6 @@ function Transactions() {
 
       {/* Transactions Content */}
       <div className="transactions-content">
-        {/* Search + Filter */}
         <div className="transactions-filters">
           <input
             type="text"
@@ -378,7 +400,6 @@ function Transactions() {
           </select>
         </div>
 
-        {/* Transactions Table */}
         <div className="transactions-table-container">
           <table className="transactions-table">
             <thead>

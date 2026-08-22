@@ -38,6 +38,83 @@
 }
 
 /* =========================
+   Transaction Summary
+========================= */
+
+.transaction-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.transaction-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.transaction-summary-icon {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.income-icon {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.expense-icon {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.balance-icon {
+  background: #dbeafe;
+  color: #2563eb;
+  font-size: 13px;
+}
+
+.transaction-summary-content {
+  min-width: 0;
+}
+
+.transaction-summary-content span {
+  display: block;
+  margin-bottom: 6px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.transaction-summary-content h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.balance-positive {
+  color: #16a34a !important;
+}
+
+.balance-negative {
+  color: #dc2626 !important;
+}
+
+/* =========================
    Modal Overlay
 ========================= */
 
@@ -392,6 +469,12 @@
    Responsive
 ========================= */
 
+@media (max-width: 900px) {
+  .transaction-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 700px) {
   .transactions-page {
     padding: 16px;
@@ -430,5 +513,20 @@
   .cancel-transaction-button,
   .confirm-delete-button {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .transaction-summary-card {
+    padding: 16px;
+  }
+
+  .transaction-summary-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .transaction-summary-content h2 {
+    font-size: 19px;
   }
 }

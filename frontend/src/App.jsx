@@ -8,24 +8,27 @@ import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 
 import DashboardLayout from "./layouts/DashboardLayout";
+import { TransactionProvider } from "./context/TransactionContext";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Authentication */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+    <TransactionProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Authentication */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Dashboard Layout */}
-        <Route element={<DashboardLayout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/transactions" element={<Transactions />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+          {/* Dashboard Layout */}
+          <Route element={<DashboardLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/transactions" element={<Transactions />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </TransactionProvider>
   );
 }
 
