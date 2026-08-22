@@ -92,8 +92,10 @@ function Dashboard() {
     return days;
   }, [transactions]);
 
-  const maxChartAmount =
-    Math.max(...chartData.map((item) => item.amount), 1);
+  const maxChartAmount = Math.max(
+    ...chartData.map((item) => item.amount),
+    1
+  );
 
   const formatDate = (date) => {
     return new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
@@ -203,7 +205,10 @@ function Dashboard() {
                     );
 
               return (
-                <div className="chart-column" key={`${item.label}-${index}`}>
+                <div
+                  className="chart-column"
+                  key={`${item.label}-${index}`}
+                >
                   <div className="chart-value">
                     {item.amount > 0
                       ? item.amount.toLocaleString()
@@ -226,6 +231,7 @@ function Dashboard() {
           <div className="monthly-statistics">
             <div>
               <span>Monthly Income</span>
+
               <strong className="monthly-income">
                 {formatCurrency(monthlyIncome)}
               </strong>
@@ -233,6 +239,7 @@ function Dashboard() {
 
             <div>
               <span>Monthly Expenses</span>
+
               <strong className="monthly-expense">
                 {formatCurrency(monthlyExpenses)}
               </strong>
@@ -261,6 +268,7 @@ function Dashboard() {
                   <div className="category-item" key={category}>
                     <div className="category-info">
                       <span>{category}</span>
+
                       <strong>{formatCurrency(amount)}</strong>
                     </div>
 
@@ -278,7 +286,7 @@ function Dashboard() {
             </div>
           ) : (
             <div className="dashboard-empty-state">
-              <div className="empty-state-icon">₹</div>
+              <div className="empty-state-icon">₨</div>
 
               <h3>No expenses yet</h3>
 
@@ -339,14 +347,19 @@ function Dashboard() {
                 </span>
 
                 <span
-                  className={
+                  className={`dashboard-transaction-amount ${
                     transaction.type === "income"
                       ? "amount-positive"
                       : "amount-negative"
-                  }
+                  }`}
                 >
-                  {transaction.type === "income" ? "+" : "-"}{" "}
-                  {formatCurrency(transaction.amount)}
+                  <span className="amount-sign">
+                    {transaction.type === "income" ? "+" : "-"}
+                  </span>
+
+                  <span className="amount-value">
+                    {formatCurrency(transaction.amount)}
+                  </span>
                 </span>
               </div>
             ))}

@@ -441,7 +441,12 @@
 .dashboard-transaction-row {
   min-width: 650px;
   display: grid;
-  grid-template-columns: 90px minmax(180px, 1.5fr) minmax(110px, 1fr) 90px minmax(120px, 1fr);
+  grid-template-columns:
+    90px
+    minmax(180px, 1.5fr)
+    minmax(110px, 1fr)
+    90px
+    minmax(150px, 1fr);
   gap: 16px;
   align-items: center;
   padding: 14px 0;
@@ -454,6 +459,8 @@
   border-bottom: none;
 }
 
+/* Table Heading */
+
 .dashboard-transaction-heading {
   padding-top: 0;
   color: #9ca3af;
@@ -462,6 +469,17 @@
   text-transform: uppercase;
 }
 
+/* IMPORTANT:
+   Amount heading is aligned exactly with amount values.
+*/
+
+.dashboard-transaction-heading span:last-child {
+  text-align: right;
+  padding-right: 2px;
+}
+
+/* Transaction Description */
+
 .dashboard-transaction-description {
   overflow: hidden;
   color: #111827;
@@ -469,6 +487,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Transaction Type */
 
 .dashboard-transaction-type {
   display: inline-block;
@@ -488,16 +508,36 @@
   color: #991b1b;
 }
 
+/* =========================
+   Amount Styling
+========================= */
+
+.dashboard-transaction-amount {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  min-width: 0;
+  padding-right: 2px;
+  white-space: nowrap;
+}
+
+.dashboard-transaction-amount .amount-sign {
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.dashboard-transaction-amount .amount-value {
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
 .amount-positive {
   color: #16a34a;
-  font-weight: 700;
-  text-align: right;
 }
 
 .amount-negative {
   color: #dc2626;
-  font-weight: 700;
-  text-align: right;
 }
 
 /* =========================
@@ -608,6 +648,10 @@
     grid-template-columns: 1fr;
     gap: 14px;
   }
+
+  .dashboard-transaction-amount {
+    gap: 6px;
+  }
 }
 
 /* =========================
@@ -667,5 +711,9 @@
 
   .category-info {
     font-size: 13px;
+  }
+
+  .dashboard-transaction-amount {
+    gap: 5px;
   }
 }
