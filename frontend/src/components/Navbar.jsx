@@ -1,9 +1,17 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "./Navbar.css";
 
 function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <nav className="navbar">
@@ -56,7 +64,11 @@ function Navbar() {
           Profile
         </Link>
 
-        <button className="logout-button" type="button">
+        <button
+          className="logout-button"
+          type="button"
+          onClick={handleLogout}
+        >
           Logout
         </button>
       </div>

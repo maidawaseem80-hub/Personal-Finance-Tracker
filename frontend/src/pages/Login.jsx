@@ -1,17 +1,53 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "./Login.css";
 
 function Login() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (event) => {
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    console.log("Login submitted:", {
-      email,
-      password,
-    });
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed.");
+      }
+
+      login(data.token, data.data);
+
+navigate("/");
+    } catch (error) {
+      setError(error.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -52,12 +88,22 @@ function Login() {
             />
           </div>
 
-          <button className="login-button" type="submit">
-            Sign In
+          {error && <p className="error-message">{error}</p>}
+
+          <button
+            className="login-button"
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? "Signing In..." : "Sign In"}
           </button>
 
           <a className="forgot-password-link" href="/forgot-password">
             Forgot Password?
+          </a>
+
+          <a className="back-to-signup-link" href="/signup">
+            Don't have an account? Create Account
           </a>
         </form>
       </div>
