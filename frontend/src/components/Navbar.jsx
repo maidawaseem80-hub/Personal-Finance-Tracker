@@ -1,6 +1,10 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import "./Navbar.css";
 
 function Navbar() {
+  const [showNotifications, setShowNotifications] = useState(false);
+
   return (
     <nav className="navbar">
       <div className="navbar-brand">
@@ -9,13 +13,48 @@ function Navbar() {
       </div>
 
       <div className="navbar-actions">
-        <button className="notification-button" type="button">
-          🔔
-        </button>
+        <div className="notification-wrapper">
+          <button
+            className="notification-button"
+            type="button"
+            onClick={() => setShowNotifications(!showNotifications)}
+            aria-label="Notifications"
+          >
+            🔔
+          </button>
 
-        <button className="profile-button" type="button">
+          {showNotifications && (
+            <div className="notification-dropdown">
+              <div className="notification-header">
+                <h3>Notifications</h3>
+              </div>
+
+              <div className="notification-item">
+                <span>💰</span>
+                <div>
+                  <strong>Welcome!</strong>
+                  <p>Start tracking your finances today.</p>
+                </div>
+              </div>
+
+              <div className="notification-item">
+                <span>📊</span>
+                <div>
+                  <strong>Keep an eye on your budget</strong>
+                  <p>Review your spending regularly.</p>
+                </div>
+              </div>
+
+              <div className="notification-empty">
+                You're all caught up!
+              </div>
+            </div>
+          )}
+        </div>
+
+        <Link to="/settings" className="profile-button">
           Profile
-        </button>
+        </Link>
 
         <button className="logout-button" type="button">
           Logout
