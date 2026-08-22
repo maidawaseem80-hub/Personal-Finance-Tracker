@@ -6,6 +6,7 @@ import ResetPassword from "./pages/ResetPassword";
 import SignUp from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
+import Budgets from "./pages/Budgets";
 
 import DashboardLayout from "./layouts/DashboardLayout";
 import { TransactionProvider } from "./context/TransactionContext";
@@ -18,13 +19,23 @@ function App() {
           {/* Authentication */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route
+            path="/forgot-password"
+            element={<ForgotPassword />}
+          />
+          <Route
+            path="/reset-password"
+            element={<ResetPassword />}
+          />
 
           {/* Dashboard Layout */}
           <Route element={<DashboardLayout />}>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/transactions" element={<Transactions />} />
+            <Route
+              path="/transactions"
+              element={<Transactions />}
+            />
+            <Route path="/budgets" element={<Budgets />} />
           </Route>
         </Routes>
       </BrowserRouter>
