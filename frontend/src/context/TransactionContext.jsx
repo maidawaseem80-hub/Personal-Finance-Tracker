@@ -1,65 +1,65 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 const TransactionContext = createContext(null);
 
-const initialTransactions = [
-  {
-    id: 1,
-    description: "Sample Transaction",
-    category: "Food",
-    date: "2026-08-20",
-    type: "expense",
-    amount: 2500,
-  },
-];
+const API_URL = import.meta.env.VITE_API_URL;
 
 export function TransactionProvider({ children }) {
-  const [transactions, setTransactions] = useState(initialTransactions);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const addTransaction = (transaction) => {
-    const newTransaction = {
-      id: Date.now(),
-      description: transaction.description.trim(),
-      amount: Number(transaction.amount),
-      type: transaction.type,
-      category: transaction.category.trim(),
-      date: transaction.date,
-    };
+  const fetchTransactions = async () => {
+    const token = localStorage.getItem("token");
 
-    setTransactions((previous) => [newTransaction, ...previous]);
+    if (!token) {
+      setTransactions([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await fetch(`${API_URL}/transactions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch transactions.");
+      }
+
+      setTransactions(data.data || []);
+    } catch (error) {
+      setError(error.message || "Failed to fetch transactions.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateTransaction = (id, updatedTransaction) => {
-    setTransactions((previous) =>
-      previous.map((transaction) =>
-        transaction.id === id
-          ? {
-              ...transaction,
-              description: updatedTransaction.description.trim(),
-              amount: Number(updatedTransaction.amount),
-              type: updatedTransaction.type,
-              category: updatedTransaction.category.trim(),
-              date: updatedTransaction.date,
-            }
-          : transaction
-      )
-    );
-  };
-
-  const deleteTransaction = (id) => {
-    setTransactions((previous) =>
-      previous.filter((transaction) => transaction.id !== id)
-    );
-  };
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
 
   const transactionSummary = useMemo(() => {
     const totalIncome = transactions
       .filter((transaction) => transaction.type === "income")
-      .reduce((total, transaction) => total + transaction.amount, 0);
+      .reduce((total, transaction) => total + Number(transaction.amount), 0);
 
     const totalExpenses = transactions
       .filter((transaction) => transaction.type === "expense")
-      .reduce((total, transaction) => total + transaction.amount, 0);
+      .reduce((total, transaction) => total + Number(transaction.amount), 0);
 
     const currentBalance = totalIncome - totalExpenses;
 
@@ -72,9 +72,9 @@ export function TransactionProvider({ children }) {
 
   const value = {
     transactions,
-    addTransaction,
-    updateTransaction,
-    deleteTransaction,
+    loading,
+    error,
+    fetchTransactions,
     transactionSummary,
   };
 
