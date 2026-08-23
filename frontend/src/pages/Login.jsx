@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Login.css";
 
@@ -28,7 +28,7 @@ function Login() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            email,
+            email: email.trim(),
             password,
           }),
         }
@@ -42,9 +42,12 @@ function Login() {
 
       login(data.token, data.data);
 
-navigate("/");
+      navigate("/");
     } catch (error) {
-      setError(error.message || "Something went wrong. Please try again.");
+      setError(
+        error.message ||
+          "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -61,7 +64,10 @@ navigate("/");
           <p>Sign in to your account</p>
         </div>
 
-        <form className="login-form" onSubmit={handleSubmit}>
+        <form
+          className="login-form"
+          onSubmit={handleSubmit}
+        >
           <div className="form-group">
             <label htmlFor="email">Email</label>
 
@@ -70,7 +76,10 @@ navigate("/");
               type="email"
               placeholder="Enter your email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) =>
+                setEmail(event.target.value)
+              }
+              autoComplete="email"
               required
             />
           </div>
@@ -83,12 +92,19 @@ navigate("/");
               type="password"
               placeholder="Enter your password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) =>
+                setPassword(event.target.value)
+              }
+              autoComplete="current-password"
               required
             />
           </div>
 
-          {error && <p className="error-message">{error}</p>}
+          {error && (
+            <p className="error-message">
+              {error}
+            </p>
+          )}
 
           <button
             className="login-button"
@@ -98,13 +114,19 @@ navigate("/");
             {loading ? "Signing In..." : "Sign In"}
           </button>
 
-          <a className="forgot-password-link" href="/forgot-password">
+          <Link
+            className="forgot-password-link"
+            to="/forgot-password"
+          >
             Forgot Password?
-          </a>
+          </Link>
 
-          <a className="back-to-signup-link" href="/signup">
+          <Link
+            className="back-to-signup-link"
+            to="/signup"
+          >
             Don't have an account? Create Account
-          </a>
+          </Link>
         </form>
       </div>
     </main>

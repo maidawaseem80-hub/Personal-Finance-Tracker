@@ -13,11 +13,30 @@ const API_URL = import.meta.env.VITE_API_URL;
 export function TransactionProvider({ children }) {
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Get the current user's token.
+  const getToken = () => {
+    return localStorage.getItem("token");
+  };
+
+  // Common headers used for authenticated requests.
+  const getAuthHeaders = () => {
+    const token = getToken();
+
+    return {
+      Authorization: `Bearer ${token}`,
+    };
+  };
+
+  // =========================
+  // Fetch Transactions
+  // =========================
+
   const fetchTransactions = async () => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
 
     if (!token) {
       setTransactions([]);
@@ -29,11 +48,12 @@ export function TransactionProvider({ children }) {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/transactions`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${API_URL}/transactions`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
 
       const data = await response.json();
 
@@ -45,6 +65,8 @@ export function TransactionProvider({ children }) {
 
       setTransactions(data.data || []);
     } catch (error) {
+      console.error("Failed to fetch transactions:", error);
+
       setError(
         error.message || "Failed to fetch transactions."
       );
@@ -53,8 +75,12 @@ export function TransactionProvider({ children }) {
     }
   };
 
+  // =========================
+  // Fetch Categories
+  // =========================
+
   const fetchCategories = async () => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
 
     if (!token) {
       setCategories([]);
@@ -62,11 +88,12 @@ export function TransactionProvider({ children }) {
     }
 
     try {
-      const response = await fetch(`${API_URL}/categories`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${API_URL}/categories`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
 
       const data = await response.json();
 
@@ -79,27 +106,38 @@ export function TransactionProvider({ children }) {
       setCategories(data.data || []);
     } catch (error) {
       console.error("Failed to fetch categories:", error);
+
+      setError(
+        error.message || "Failed to fetch categories."
+      );
     }
   };
 
+  // =========================
+  // Create Category
+  // =========================
+
   const createCategory = async (name, type) => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
 
     if (!token) {
       throw new Error("You must be logged in.");
     }
 
-    const response = await fetch(`${API_URL}/categories`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        name,
-        type,
-      }),
-    });
+    const response = await fetch(
+      `${API_URL}/categories`,
+      {
+        method: "POST",
+        headers: {
+          ...getAuthHeaders(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          type,
+        }),
+      }
+    );
 
     const data = await response.json();
 
@@ -117,8 +155,15 @@ export function TransactionProvider({ children }) {
     return data.data;
   };
 
-  const updateCategory = async (categoryId, categoryData) => {
-    const token = localStorage.getItem("token");
+  // =========================
+  // Update Category
+  // =========================
+
+  const updateCategory = async (
+    categoryId,
+    categoryData
+  ) => {
+    const token = getToken();
 
     if (!token) {
       throw new Error("You must be logged in.");
@@ -129,10 +174,13 @@ export function TransactionProvider({ children }) {
       {
         method: "PUT",
         headers: {
+          ...getAuthHeaders(),
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(categoryData),
+        body: JSON.stringify({
+          name: categoryData.name.trim(),
+          type: categoryData.type,
+        }),
       }
     );
 
@@ -155,8 +203,12 @@ export function TransactionProvider({ children }) {
     return data.data;
   };
 
+  // =========================
+  // Delete Category
+  // =========================
+
   const deleteCategory = async (categoryId) => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
 
     if (!token) {
       throw new Error("You must be logged in.");
@@ -166,9 +218,7 @@ export function TransactionProvider({ children }) {
       `${API_URL}/categories/${categoryId}`,
       {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: getAuthHeaders(),
       }
     );
 
@@ -185,29 +235,38 @@ export function TransactionProvider({ children }) {
         (category) => category._id !== categoryId
       )
     );
+
+    return data;
   };
 
+  // =========================
+  // Add Transaction
+  // =========================
+
   const addTransaction = async (transactionData) => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
 
     if (!token) {
       throw new Error("You must be logged in.");
     }
 
-    const response = await fetch(`${API_URL}/transactions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        amount: Number(transactionData.amount),
-        type: transactionData.type,
-        category: transactionData.category,
-        note: transactionData.description,
-        date: transactionData.date,
-      }),
-    });
+    const response = await fetch(
+      `${API_URL}/transactions`,
+      {
+        method: "POST",
+        headers: {
+          ...getAuthHeaders(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: Number(transactionData.amount),
+          type: transactionData.type,
+          category: transactionData.category,
+          note: transactionData.description?.trim() || "",
+          date: transactionData.date,
+        }),
+      }
+    );
 
     const data = await response.json();
 
@@ -225,11 +284,15 @@ export function TransactionProvider({ children }) {
     return data.data;
   };
 
+  // =========================
+  // Update Transaction
+  // =========================
+
   const updateTransaction = async (
     transactionId,
     transactionData
   ) => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
 
     if (!token) {
       throw new Error("You must be logged in.");
@@ -240,14 +303,14 @@ export function TransactionProvider({ children }) {
       {
         method: "PUT",
         headers: {
+          ...getAuthHeaders(),
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           amount: Number(transactionData.amount),
           type: transactionData.type,
           category: transactionData.category,
-          note: transactionData.description,
+          note: transactionData.description?.trim() || "",
           date: transactionData.date,
         }),
       }
@@ -272,8 +335,12 @@ export function TransactionProvider({ children }) {
     return data.data;
   };
 
+  // =========================
+  // Delete Transaction
+  // =========================
+
   const deleteTransaction = async (transactionId) => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
 
     if (!token) {
       throw new Error("You must be logged in.");
@@ -283,9 +350,7 @@ export function TransactionProvider({ children }) {
       `${API_URL}/transactions/${transactionId}`,
       {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: getAuthHeaders(),
       }
     );
 
@@ -299,38 +364,58 @@ export function TransactionProvider({ children }) {
 
     setTransactions((currentTransactions) =>
       currentTransactions.filter(
-        (transaction) => transaction._id !== transactionId
+        (transaction) =>
+          transaction._id !== transactionId
       )
     );
+
+    return data;
   };
 
+  // =========================
+  // Load Initial Data
+  // =========================
+
   useEffect(() => {
-    fetchTransactions();
-    fetchCategories();
+    const loadData = async () => {
+      await Promise.all([
+        fetchTransactions(),
+        fetchCategories(),
+      ]);
+    };
+
+    loadData();
   }, []);
+
+  // =========================
+  // Transaction Summary
+  // =========================
 
   const transactionSummary = useMemo(() => {
     const totalIncome = transactions
       .filter(
-        (transaction) => transaction.type === "income"
+        (transaction) =>
+          transaction.type === "income"
       )
       .reduce(
         (total, transaction) =>
-          total + Number(transaction.amount),
+          total + Number(transaction.amount || 0),
         0
       );
 
     const totalExpenses = transactions
       .filter(
-        (transaction) => transaction.type === "expense"
+        (transaction) =>
+          transaction.type === "expense"
       )
       .reduce(
         (total, transaction) =>
-          total + Number(transaction.amount),
+          total + Number(transaction.amount || 0),
         0
       );
 
-    const currentBalance = totalIncome - totalExpenses;
+    const currentBalance =
+      totalIncome - totalExpenses;
 
     return {
       totalIncome,
@@ -339,9 +424,14 @@ export function TransactionProvider({ children }) {
     };
   }, [transactions]);
 
+  // =========================
+  // Context Value
+  // =========================
+
   const value = {
     transactions,
     categories,
+
     loading,
     error,
 
@@ -365,6 +455,10 @@ export function TransactionProvider({ children }) {
     </TransactionContext.Provider>
   );
 }
+
+// =========================
+// Custom Hook
+// =========================
 
 export function useTransactions() {
   const context = useContext(TransactionContext);

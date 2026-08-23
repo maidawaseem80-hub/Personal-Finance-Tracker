@@ -65,7 +65,6 @@ function Settings() {
     setEditingCategoryId(null);
     setEditingCategoryName("");
     setEditingCategoryType("expense");
-
     setCategoryError("");
   };
 
@@ -85,11 +84,10 @@ function Settings() {
       setCategoryError("");
       setCategorySuccess("");
 
-      await updateCategory(
-        categoryId,
-        trimmedName,
-        editingCategoryType
-      );
+      await updateCategory(categoryId, {
+        name: trimmedName,
+        type: editingCategoryType,
+      });
 
       setEditingCategoryId(null);
       setEditingCategoryName("");
@@ -115,6 +113,7 @@ function Settings() {
     }
 
     try {
+      setCategoryLoading(true);
       setCategoryError("");
       setCategorySuccess("");
 
@@ -129,6 +128,8 @@ function Settings() {
       setCategoryError(
         error.message || "Failed to delete category."
       );
+    } finally {
+      setCategoryLoading(false);
     }
   };
 
@@ -136,7 +137,10 @@ function Settings() {
     <div className="settings-page">
       <div className="settings-header">
         <h1>Settings</h1>
-        <p>Manage your account and application preferences.</p>
+
+        <p>
+          Manage your account and application preferences.
+        </p>
       </div>
 
       <div className="settings-sections">
@@ -144,12 +148,17 @@ function Settings() {
         <section className="settings-card">
           <div className="settings-card-header">
             <h2>Profile</h2>
-            <p>Update your personal information.</p>
+
+            <p>
+              Update your personal information.
+            </p>
           </div>
 
           <div className="settings-form">
             <div className="settings-field">
-              <label htmlFor="settings-name">Full Name</label>
+              <label htmlFor="settings-name">
+                Full Name
+              </label>
 
               <input
                 id="settings-name"
@@ -159,7 +168,9 @@ function Settings() {
             </div>
 
             <div className="settings-field">
-              <label htmlFor="settings-email">Email</label>
+              <label htmlFor="settings-email">
+                Email
+              </label>
 
               <input
                 id="settings-email"
@@ -181,6 +192,7 @@ function Settings() {
         <section className="settings-card">
           <div className="settings-card-header">
             <h2>Preferences</h2>
+
             <p>
               Customize how your finance tracker works.
             </p>
@@ -190,6 +202,7 @@ function Settings() {
             <div className="settings-option">
               <div>
                 <h3>Currency</h3>
+
                 <p>
                   Select the currency used throughout the
                   application.
@@ -200,8 +213,15 @@ function Settings() {
                 <option value="PKR">
                   PKR - Pakistani Rupee
                 </option>
-                <option value="USD">USD - US Dollar</option>
-                <option value="EUR">EUR - Euro</option>
+
+                <option value="USD">
+                  USD - US Dollar
+                </option>
+
+                <option value="EUR">
+                  EUR - Euro
+                </option>
+
                 <option value="GBP">
                   GBP - British Pound
                 </option>
@@ -211,6 +231,7 @@ function Settings() {
             <div className="settings-option">
               <div>
                 <h3>Email Notifications</h3>
+
                 <p>
                   Receive notifications about your finances.
                 </p>
@@ -221,6 +242,7 @@ function Settings() {
                   type="checkbox"
                   defaultChecked
                 />
+
                 <span></span>
               </label>
             </div>
@@ -231,6 +253,7 @@ function Settings() {
         <section className="settings-card">
           <div className="settings-card-header">
             <h2>Categories</h2>
+
             <p>
               Create and manage categories for your income
               and expenses.
@@ -255,6 +278,7 @@ function Settings() {
                   setCategoryName(event.target.value)
                 }
                 placeholder="e.g. Food, Salary, Transport"
+                disabled={categoryLoading}
               />
             </div>
 
@@ -269,6 +293,7 @@ function Settings() {
                 onChange={(event) =>
                   setCategoryType(event.target.value)
                 }
+                disabled={categoryLoading}
               >
                 <option value="expense">
                   Expense
@@ -291,7 +316,7 @@ function Settings() {
             </button>
           </form>
 
-          {/* Messages */}
+          {/* Category Messages */}
           {categoryError && (
             <p className="category-message category-error">
               {categoryError}
@@ -348,6 +373,7 @@ function Settings() {
                                 )
                               }
                               autoFocus
+                              disabled={categoryLoading}
                             />
                           </div>
 
@@ -366,6 +392,7 @@ function Settings() {
                                   event.target.value
                                 )
                               }
+                              disabled={categoryLoading}
                             >
                               <option value="expense">
                                 Expense
@@ -407,7 +434,7 @@ function Settings() {
                       className="category-item"
                       key={category._id}
                     >
-                      <div>
+                      <div className="category-item-info">
                         <strong>{category.name}</strong>
 
                         <span
@@ -426,6 +453,7 @@ function Settings() {
                           onClick={() =>
                             handleStartEdit(category)
                           }
+                          disabled={categoryLoading}
                         >
                           Edit
                         </button>
@@ -438,6 +466,7 @@ function Settings() {
                               category._id
                             )
                           }
+                          disabled={categoryLoading}
                         >
                           Delete
                         </button>
@@ -454,13 +483,19 @@ function Settings() {
         <section className="settings-card">
           <div className="settings-card-header">
             <h2>Security</h2>
-            <p>Manage your account security.</p>
+
+            <p>
+              Manage your account security.
+            </p>
           </div>
 
           <div className="security-row">
             <div>
               <h3>Password</h3>
-              <p>Change your account password.</p>
+
+              <p>
+                Change your account password.
+              </p>
             </div>
 
             <button

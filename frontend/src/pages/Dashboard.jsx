@@ -7,12 +7,35 @@ function Dashboard() {
   const { transactions, transactionSummary } = useTransactions();
 
   const formatCurrency = (amount) => {
-    return `Rs. ${amount.toLocaleString()}`;
+    return `Rs. ${Number(amount || 0).toLocaleString()}`;
+  };
+
+  const getCategoryName = (category) => {
+    if (!category) {
+      return "Uncategorized";
+    }
+
+    if (typeof category === "object") {
+      return category.name || "Uncategorized";
+    }
+
+    return category;
+  };
+
+  const getTransactionDescription = (transaction) => {
+    return (
+      transaction.description ||
+      transaction.note ||
+      "No description"
+    );
   };
 
   const recentTransactions = useMemo(() => {
     return [...transactions]
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .sort(
+        (a, b) =>
+          new Date(b.date) - new Date(a.date)
+      )
       .slice(0, 5);
   }, [transactions]);
 
@@ -20,7 +43,9 @@ function Dashboard() {
     const now = new Date();
 
     return transactions.filter((transaction) => {
-      const transactionDate = new Date(`${transaction.date}T00:00:00`);
+      const transactionDate = new Date(
+        `${transaction.date}T00:00:00`
+      );
 
       return (
         transactionDate.getMonth() === now.getMonth() &&
@@ -31,27 +56,47 @@ function Dashboard() {
 
   const monthlyIncome = useMemo(() => {
     return currentMonthTransactions
-      .filter((transaction) => transaction.type === "income")
-      .reduce((total, transaction) => total + transaction.amount, 0);
+      .filter(
+        (transaction) => transaction.type === "income"
+      )
+      .reduce(
+        (total, transaction) =>
+          total + Number(transaction.amount || 0),
+        0
+      );
   }, [currentMonthTransactions]);
 
   const monthlyExpenses = useMemo(() => {
     return currentMonthTransactions
-      .filter((transaction) => transaction.type === "expense")
-      .reduce((total, transaction) => total + transaction.amount, 0);
+      .filter(
+        (transaction) => transaction.type === "expense"
+      )
+      .reduce(
+        (total, transaction) =>
+          total + Number(transaction.amount || 0),
+        0
+      );
   }, [currentMonthTransactions]);
 
   const categorySummary = useMemo(() => {
     const categories = {};
 
     currentMonthTransactions
-      .filter((transaction) => transaction.type === "expense")
+      .filter(
+        (transaction) => transaction.type === "expense"
+      )
       .forEach((transaction) => {
-        if (!categories[transaction.category]) {
-          categories[transaction.category] = 0;
+        const categoryName = getCategoryName(
+          transaction.category
+        );
+
+        if (!categories[categoryName]) {
+          categories[categoryName] = 0;
         }
 
-        categories[transaction.category] += transaction.amount;
+        categories[categoryName] += Number(
+          transaction.amount || 0
+        );
       });
 
     return Object.entries(categories)
@@ -61,7 +106,11 @@ function Dashboard() {
 
   const maxCategoryAmount =
     categorySummary.length > 0
-      ? Math.max(...categorySummary.map(([, amount]) => amount))
+      ? Math.max(
+          ...categorySummary.map(
+            ([, amount]) => amount
+          )
+        )
       : 0;
 
   const chartData = useMemo(() => {
@@ -69,9 +118,12 @@ function Dashboard() {
 
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
+
       date.setDate(date.getDate() - i);
 
-      const dateString = date.toISOString().split("T")[0];
+      const dateString = date
+        .toISOString()
+        .split("T")[0];
 
       const dailyExpenses = transactions
         .filter(
@@ -79,7 +131,11 @@ function Dashboard() {
             transaction.type === "expense" &&
             transaction.date === dateString
         )
-        .reduce((total, transaction) => total + transaction.amount, 0);
+        .reduce(
+          (total, transaction) =>
+            total + Number(transaction.amount || 0),
+          0
+        );
 
       days.push({
         label: date.toLocaleDateString("en-US", {
@@ -98,7 +154,9 @@ function Dashboard() {
   );
 
   const formatDate = (date) => {
-    return new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
+    return new Date(
+      `${date}T00:00:00`
+    ).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
     });
@@ -110,10 +168,15 @@ function Dashboard() {
       <div className="dashboard-header">
         <div>
           <h1>Dashboard</h1>
-          <p>Welcome back! Here's your financial overview.</p>
+          <p>
+            Welcome back! Here's your financial overview.
+          </p>
         </div>
 
-        <Link to="/transactions" className="dashboard-add-button">
+        <Link
+          to="/transactions"
+          className="dashboard-add-button"
+        >
           + Add Transaction
         </Link>
       </div>
@@ -122,7 +185,9 @@ function Dashboard() {
       <div className="summary-grid">
         <div className="summary-card">
           <div className="summary-card-top">
-            <span className="summary-label">Total Balance</span>
+            <span className="summary-label">
+              Total Balance
+            </span>
 
             <div className="summary-icon balance-summary-icon">
               Rs
@@ -136,7 +201,9 @@ function Dashboard() {
                 : "summary-balance-negative"
             }
           >
-            {formatCurrency(transactionSummary.currentBalance)}
+            {formatCurrency(
+              transactionSummary.currentBalance
+            )}
           </h2>
 
           <p className="summary-description">
@@ -146,7 +213,9 @@ function Dashboard() {
 
         <div className="summary-card">
           <div className="summary-card-top">
-            <span className="summary-label">Total Income</span>
+            <span className="summary-label">
+              Total Income
+            </span>
 
             <div className="summary-icon income-summary-icon">
               ↑
@@ -154,7 +223,9 @@ function Dashboard() {
           </div>
 
           <h2 className="summary-income">
-            {formatCurrency(transactionSummary.totalIncome)}
+            {formatCurrency(
+              transactionSummary.totalIncome
+            )}
           </h2>
 
           <p className="summary-description">
@@ -164,7 +235,9 @@ function Dashboard() {
 
         <div className="summary-card">
           <div className="summary-card-top">
-            <span className="summary-label">Total Expenses</span>
+            <span className="summary-label">
+              Total Expenses
+            </span>
 
             <div className="summary-icon expense-summary-icon">
               ↓
@@ -172,7 +245,9 @@ function Dashboard() {
           </div>
 
           <h2 className="summary-expense">
-            {formatCurrency(transactionSummary.totalExpenses)}
+            {formatCurrency(
+              transactionSummary.totalExpenses
+            )}
           </h2>
 
           <p className="summary-description">
@@ -191,7 +266,9 @@ function Dashboard() {
               <p>Expenses from the last 7 days</p>
             </div>
 
-            <span className="card-header-badge">This Month</span>
+            <span className="card-header-badge">
+              This Month
+            </span>
           </div>
 
           <div className="overview-chart">
@@ -200,7 +277,9 @@ function Dashboard() {
                 item.amount === 0
                   ? 5
                   : Math.max(
-                      (item.amount / maxChartAmount) * 100,
+                      (item.amount /
+                        maxChartAmount) *
+                        100,
                       8
                     );
 
@@ -218,11 +297,15 @@ function Dashboard() {
                   <div className="chart-bar-wrapper">
                     <div
                       className="chart-bar"
-                      style={{ height: `${height}%` }}
+                      style={{
+                        height: `${height}%`,
+                      }}
                     ></div>
                   </div>
 
-                  <span className="chart-label">{item.label}</span>
+                  <span className="chart-label">
+                    {item.label}
+                  </span>
                 </div>
               );
             })}
@@ -258,40 +341,52 @@ function Dashboard() {
 
           {categorySummary.length > 0 ? (
             <div className="category-list">
-              {categorySummary.map(([category, amount]) => {
-                const percentage =
-                  maxCategoryAmount > 0
-                    ? (amount / maxCategoryAmount) * 100
-                    : 0;
+              {categorySummary.map(
+                ([category, amount]) => {
+                  const percentage =
+                    maxCategoryAmount > 0
+                      ? (amount /
+                          maxCategoryAmount) *
+                        100
+                      : 0;
 
-                return (
-                  <div className="category-item" key={category}>
-                    <div className="category-info">
-                      <span>{category}</span>
+                  return (
+                    <div
+                      className="category-item"
+                      key={category}
+                    >
+                      <div className="category-info">
+                        <span>{category}</span>
 
-                      <strong>{formatCurrency(amount)}</strong>
+                        <strong>
+                          {formatCurrency(amount)}
+                        </strong>
+                      </div>
+
+                      <div className="category-progress">
+                        <div
+                          className="category-progress-fill"
+                          style={{
+                            width: `${percentage}%`,
+                          }}
+                        ></div>
+                      </div>
                     </div>
-
-                    <div className="category-progress">
-                      <div
-                        className="category-progress-fill"
-                        style={{
-                          width: `${percentage}%`,
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                }
+              )}
             </div>
           ) : (
             <div className="dashboard-empty-state">
-              <div className="empty-state-icon">₨</div>
+              <div className="empty-state-icon">
+                ✨
+              </div>
 
               <h3>No expenses yet</h3>
 
               <p>
-                Add an expense to see your spending by category.
+                Add an expense to see your spending by
+                category.
               </p>
 
               <Link to="/transactions">
@@ -310,7 +405,9 @@ function Dashboard() {
             <p>Your latest financial activity</p>
           </div>
 
-          <Link to="/transactions">View All</Link>
+          <Link to="/transactions">
+            View All
+          </Link>
         </div>
 
         {recentTransactions.length > 0 ? (
@@ -326,15 +423,23 @@ function Dashboard() {
             {recentTransactions.map((transaction) => (
               <div
                 className="dashboard-transaction-row"
-                key={transaction.id}
+                key={transaction._id}
               >
-                <span>{formatDate(transaction.date)}</span>
-
-                <span className="dashboard-transaction-description">
-                  {transaction.description}
+                <span>
+                  {formatDate(transaction.date)}
                 </span>
 
-                <span>{transaction.category}</span>
+                <span className="dashboard-transaction-description">
+                  {getTransactionDescription(
+                    transaction
+                  )}
+                </span>
+
+                <span>
+                  {getCategoryName(
+                    transaction.category
+                  )}
+                </span>
 
                 <span>
                   <span
@@ -354,11 +459,15 @@ function Dashboard() {
                   }`}
                 >
                   <span className="amount-sign">
-                    {transaction.type === "income" ? "+" : "-"}
+                    {transaction.type === "income"
+                      ? "+"
+                      : "-"}
                   </span>
 
                   <span className="amount-value">
-                    {formatCurrency(transaction.amount)}
+                    {formatCurrency(
+                      transaction.amount
+                    )}
                   </span>
                 </span>
               </div>
@@ -369,8 +478,8 @@ function Dashboard() {
             <h3>No transactions yet</h3>
 
             <p>
-              Start tracking your finances by adding your first
-              transaction.
+              Start tracking your finances by adding
+              your first transaction.
             </p>
 
             <Link to="/transactions">
