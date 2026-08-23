@@ -5,6 +5,7 @@ import { useTransactions } from "../context/TransactionContext";
 function Transactions() {
   const {
     transactions,
+    categories,
     addTransaction,
     updateTransaction,
     deleteTransaction,
@@ -30,12 +31,23 @@ function Transactions() {
     const search = searchTerm.toLowerCase().trim();
 
     return transactions.filter((transaction) => {
+      const categoryName =
+        typeof transaction.category === "object"
+          ? transaction.category?.name || ""
+          : transaction.category || "";
+
+      const description =
+        transaction.description ||
+        transaction.note ||
+        "";
+
       const matchesSearch =
-        transaction.description.toLowerCase().includes(search) ||
-        transaction.category.toLowerCase().includes(search);
+        description.toLowerCase().includes(search) ||
+        categoryName.toLowerCase().includes(search);
 
       const matchesType =
-        filterType === "all" || transaction.type === filterType;
+        filterType === "all" ||
+        transaction.type === filterType;
 
       return matchesSearch && matchesType;
     });
@@ -69,12 +81,24 @@ function Transactions() {
   const handleOpenEditForm = (transaction) => {
     setEditingTransaction(transaction);
 
+    const categoryId =
+      typeof transaction.category === "object"
+        ? transaction.category?._id || ""
+        : transaction.category || "";
+
     setFormData({
-      description: transaction.description,
-      amount: transaction.amount.toString(),
+      description:
+        transaction.description ||
+        transaction.note ||
+        "",
+      amount: transaction.amount?.toString() || "",
       type: transaction.type,
-      category: transaction.category,
-      date: transaction.date,
+      category: categoryId,
+      date: transaction.date
+        ? new Date(transaction.date)
+            .toISOString()
+            .split("T")[0]
+        : "",
     });
 
     setShowForm(true);
@@ -90,10 +114,15 @@ function Transactions() {
     event.preventDefault();
 
     const description = formData.description.trim();
-    const category = formData.category.trim();
+    const category = formData.category;
     const amount = Number(formData.amount);
 
-    if (!description || !category || !formData.date || amount <= 0) {
+    if (
+      !description ||
+      !category ||
+      !formData.date ||
+      amount <= 0
+    ) {
       return;
     }
 
@@ -106,7 +135,11 @@ function Transactions() {
     };
 
     if (editingTransaction) {
-      updateTransaction(editingTransaction.id, transactionData);
+      updateTransaction(
+        editingTransaction._id ||
+          editingTransaction.id,
+        transactionData
+      );
     } else {
       addTransaction(transactionData);
     }
@@ -127,12 +160,20 @@ function Transactions() {
       return;
     }
 
-    deleteTransaction(transactionToDelete.id);
+    deleteTransaction(
+      transactionToDelete._id ||
+        transactionToDelete.id
+    );
+
     setTransactionToDelete(null);
   };
 
   const formatDate = (date) => {
-    return new Date(`${date}T00:00:00`).toLocaleDateString("en-GB", {
+    if (!date) {
+      return "-";
+    }
+
+    return new Date(date).toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -140,7 +181,19 @@ function Transactions() {
   };
 
   const formatCurrency = (amount) => {
-    return `Rs. ${amount.toLocaleString()}`;
+    return `Rs. ${Number(amount).toLocaleString()}`;
+  };
+
+  const getCategoryName = (category) => {
+    if (typeof category === "object") {
+      return category?.name || "Unknown";
+    }
+
+    const foundCategory = categories.find(
+      (item) => item._id === category
+    );
+
+    return foundCategory?.name || category || "Unknown";
   };
 
   return (
@@ -149,7 +202,9 @@ function Transactions() {
       <div className="transactions-header">
         <div>
           <h1>Transactions</h1>
-          <p>View and manage your financial transactions.</p>
+          <p>
+            View and manage your financial transactions.
+          </p>
         </div>
 
         <button
@@ -170,7 +225,11 @@ function Transactions() {
 
           <div className="transaction-summary-content">
             <span>Total Income</span>
-            <h2>{formatCurrency(transactionSummary.totalIncome)}</h2>
+            <h2>
+              {formatCurrency(
+                transactionSummary.totalIncome
+              )}
+            </h2>
           </div>
         </div>
 
@@ -181,7 +240,11 @@ function Transactions() {
 
           <div className="transaction-summary-content">
             <span>Total Expenses</span>
-            <h2>{formatCurrency(transactionSummary.totalExpenses)}</h2>
+            <h2>
+              {formatCurrency(
+                transactionSummary.totalExpenses
+              )}
+            </h2>
           </div>
         </div>
 
@@ -192,6 +255,7 @@ function Transactions() {
 
           <div className="transaction-summary-content">
             <span>Current Balance</span>
+
             <h2
               className={
                 transactionSummary.currentBalance >= 0
@@ -199,7 +263,9 @@ function Transactions() {
                   : "balance-negative"
               }
             >
-              {formatCurrency(transactionSummary.currentBalance)}
+              {formatCurrency(
+                transactionSummary.currentBalance
+              )}
             </h2>
           </div>
         </div>
@@ -239,9 +305,14 @@ function Transactions() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="transaction-form">
+            <form
+              onSubmit={handleSubmit}
+              className="transaction-form"
+            >
               <div className="transaction-form-group">
-                <label htmlFor="description">Description</label>
+                <label htmlFor="description">
+                  Description
+                </label>
 
                 <input
                   id="description"
@@ -256,7 +327,9 @@ function Transactions() {
 
               <div className="transaction-form-row">
                 <div className="transaction-form-group">
-                  <label htmlFor="amount">Amount</label>
+                  <label htmlFor="amount">
+                    Amount
+                  </label>
 
                   <input
                     id="amount"
@@ -272,7 +345,9 @@ function Transactions() {
                 </div>
 
                 <div className="transaction-form-group">
-                  <label htmlFor="type">Type</label>
+                  <label htmlFor="type">
+                    Type
+                  </label>
 
                   <select
                     id="type"
@@ -280,29 +355,54 @@ function Transactions() {
                     value={formData.type}
                     onChange={handleInputChange}
                   >
-                    <option value="expense">Expense</option>
-                    <option value="income">Income</option>
+                    <option value="expense">
+                      Expense
+                    </option>
+
+                    <option value="income">
+                      Income
+                    </option>
                   </select>
                 </div>
               </div>
 
               <div className="transaction-form-row">
                 <div className="transaction-form-group">
-                  <label htmlFor="category">Category</label>
+                  <label htmlFor="category">
+                    Category
+                  </label>
 
-                  <input
+                  <select
                     id="category"
                     name="category"
-                    type="text"
-                    placeholder="e.g. Food"
                     value={formData.category}
                     onChange={handleInputChange}
                     required
-                  />
+                  >
+                    <option value="">
+                      Select category
+                    </option>
+
+                    {categories
+                      .filter(
+                        (category) =>
+                          category.type === formData.type
+                      )
+                      .map((category) => (
+                        <option
+                          key={category._id}
+                          value={category._id}
+                        >
+                          {category.name}
+                        </option>
+                      ))}
+                  </select>
                 </div>
 
                 <div className="transaction-form-group">
-                  <label htmlFor="date">Date</label>
+                  <label htmlFor="date">
+                    Date
+                  </label>
 
                   <input
                     id="date"
@@ -347,7 +447,9 @@ function Transactions() {
             aria-modal="true"
             aria-labelledby="delete-confirmation-title"
           >
-            <div className="delete-confirmation-icon">!</div>
+            <div className="delete-confirmation-icon">
+              !
+            </div>
 
             <h2 id="delete-confirmation-title">
               Delete Transaction?
@@ -355,8 +457,11 @@ function Transactions() {
 
             <p>
               Are you sure you want to delete{" "}
-              <strong>{transactionToDelete.description}</strong>?
-              This action cannot be undone.
+              <strong>
+                {transactionToDelete.description ||
+                  transactionToDelete.note}
+              </strong>
+              ? This action cannot be undone.
             </p>
 
             <div className="delete-confirmation-actions">
@@ -387,16 +492,28 @@ function Transactions() {
             type="text"
             placeholder="Search transactions..."
             value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
+            onChange={(event) =>
+              setSearchTerm(event.target.value)
+            }
           />
 
           <select
             value={filterType}
-            onChange={(event) => setFilterType(event.target.value)}
+            onChange={(event) =>
+              setFilterType(event.target.value)
+            }
           >
-            <option value="all">All Transactions</option>
-            <option value="income">Income</option>
-            <option value="expense">Expenses</option>
+            <option value="all">
+              All Transactions
+            </option>
+
+            <option value="income">
+              Income
+            </option>
+
+            <option value="expense">
+              Expenses
+            </option>
           </select>
         </div>
 
@@ -416,12 +533,26 @@ function Transactions() {
             <tbody>
               {filteredTransactions.length > 0 ? (
                 filteredTransactions.map((transaction) => (
-                  <tr key={transaction.id}>
-                    <td>{transaction.description}</td>
+                  <tr
+                    key={
+                      transaction._id ||
+                      transaction.id
+                    }
+                  >
+                    <td>
+                      {transaction.description ||
+                        transaction.note}
+                    </td>
 
-                    <td>{transaction.category}</td>
+                    <td>
+                      {getCategoryName(
+                        transaction.category
+                      )}
+                    </td>
 
-                    <td>{formatDate(transaction.date)}</td>
+                    <td>
+                      {formatDate(transaction.date)}
+                    </td>
 
                     <td>
                       <span
@@ -436,8 +567,13 @@ function Transactions() {
                     <td
                       className={`transaction-amount ${transaction.type}`}
                     >
-                      {transaction.type === "income" ? "+" : "-"} Rs.{" "}
-                      {transaction.amount.toLocaleString()}
+                      {transaction.type === "income"
+                        ? "+"
+                        : "-"}{" "}
+                      Rs.{" "}
+                      {Number(
+                        transaction.amount
+                      ).toLocaleString()}
                     </td>
 
                     <td>
@@ -446,7 +582,9 @@ function Transactions() {
                           type="button"
                           className="edit-transaction-button"
                           onClick={() =>
-                            handleOpenEditForm(transaction)
+                            handleOpenEditForm(
+                              transaction
+                            )
                           }
                         >
                           Edit
@@ -456,7 +594,9 @@ function Transactions() {
                           type="button"
                           className="delete-transaction-button"
                           onClick={() =>
-                            handleDeleteClick(transaction)
+                            handleDeleteClick(
+                              transaction
+                            )
                           }
                         >
                           Delete
@@ -467,7 +607,10 @@ function Transactions() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="no-transactions">
+                  <td
+                    colSpan="6"
+                    className="no-transactions"
+                  >
                     No transactions found.
                   </td>
                 </tr>
