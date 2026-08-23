@@ -117,7 +117,7 @@ export function TransactionProvider({ children }) {
     return data.data;
   };
 
-  const updateCategory = async (categoryId, name, type) => {
+  const updateCategory = async (categoryId, categoryData) => {
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -132,10 +132,7 @@ export function TransactionProvider({ children }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          name,
-          type,
-        }),
+        body: JSON.stringify(categoryData),
       }
     );
 
@@ -190,6 +187,123 @@ export function TransactionProvider({ children }) {
     );
   };
 
+  const addTransaction = async (transactionData) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      throw new Error("You must be logged in.");
+    }
+
+    const response = await fetch(`${API_URL}/transactions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        amount: Number(transactionData.amount),
+        type: transactionData.type,
+        category: transactionData.category,
+        note: transactionData.description,
+        date: transactionData.date,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Failed to create transaction."
+      );
+    }
+
+    setTransactions((currentTransactions) => [
+      data.data,
+      ...currentTransactions,
+    ]);
+
+    return data.data;
+  };
+
+  const updateTransaction = async (
+    transactionId,
+    transactionData
+  ) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      throw new Error("You must be logged in.");
+    }
+
+    const response = await fetch(
+      `${API_URL}/transactions/${transactionId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          amount: Number(transactionData.amount),
+          type: transactionData.type,
+          category: transactionData.category,
+          note: transactionData.description,
+          date: transactionData.date,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Failed to update transaction."
+      );
+    }
+
+    setTransactions((currentTransactions) =>
+      currentTransactions.map((transaction) =>
+        transaction._id === transactionId
+          ? data.data
+          : transaction
+      )
+    );
+
+    return data.data;
+  };
+
+  const deleteTransaction = async (transactionId) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      throw new Error("You must be logged in.");
+    }
+
+    const response = await fetch(
+      `${API_URL}/transactions/${transactionId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Failed to delete transaction."
+      );
+    }
+
+    setTransactions((currentTransactions) =>
+      currentTransactions.filter(
+        (transaction) => transaction._id !== transactionId
+      )
+    );
+  };
+
   useEffect(() => {
     fetchTransactions();
     fetchCategories();
@@ -230,11 +344,18 @@ export function TransactionProvider({ children }) {
     categories,
     loading,
     error,
+
     fetchTransactions,
     fetchCategories,
+
     createCategory,
     updateCategory,
     deleteCategory,
+
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+
     transactionSummary,
   };
 
