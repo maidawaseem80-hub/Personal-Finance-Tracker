@@ -6,23 +6,33 @@ import {
   useState,
 } from "react";
 
+import { useAuth } from "./AuthContext";
+
 const TransactionContext = createContext(null);
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export function TransactionProvider({ children }) {
+  const { user, loading: authLoading } = useAuth();
+
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Get the current user's token.
+  // =========================
+  // Get Authentication Token
+  // =========================
+
   const getToken = () => {
     return localStorage.getItem("token");
   };
 
-  // Common headers used for authenticated requests.
+  // =========================
+  // Common Auth Headers
+  // =========================
+
   const getAuthHeaders = () => {
     const token = getToken();
 
@@ -40,14 +50,10 @@ export function TransactionProvider({ children }) {
 
     if (!token) {
       setTransactions([]);
-      setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
-      setError("");
-
       const response = await fetch(
         `${API_URL}/transactions`,
         {
@@ -65,13 +71,15 @@ export function TransactionProvider({ children }) {
 
       setTransactions(data.data || []);
     } catch (error) {
-      console.error("Failed to fetch transactions:", error);
+      console.error(
+        "Failed to fetch transactions:",
+        error
+      );
 
       setError(
-        error.message || "Failed to fetch transactions."
+        error.message ||
+          "Failed to fetch transactions."
       );
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -99,16 +107,21 @@ export function TransactionProvider({ children }) {
 
       if (!response.ok) {
         throw new Error(
-          data.message || "Failed to fetch categories."
+          data.message ||
+            "Failed to fetch categories."
         );
       }
 
       setCategories(data.data || []);
     } catch (error) {
-      console.error("Failed to fetch categories:", error);
+      console.error(
+        "Failed to fetch categories:",
+        error
+      );
 
       setError(
-        error.message || "Failed to fetch categories."
+        error.message ||
+          "Failed to fetch categories."
       );
     }
   };
@@ -143,7 +156,8 @@ export function TransactionProvider({ children }) {
 
     if (!response.ok) {
       throw new Error(
-        data.message || "Failed to create category."
+        data.message ||
+          "Failed to create category."
       );
     }
 
@@ -188,7 +202,8 @@ export function TransactionProvider({ children }) {
 
     if (!response.ok) {
       throw new Error(
-        data.message || "Failed to update category."
+        data.message ||
+          "Failed to update category."
       );
     }
 
@@ -226,13 +241,15 @@ export function TransactionProvider({ children }) {
 
     if (!response.ok) {
       throw new Error(
-        data.message || "Failed to delete category."
+        data.message ||
+          "Failed to delete category."
       );
     }
 
     setCategories((currentCategories) =>
       currentCategories.filter(
-        (category) => category._id !== categoryId
+        (category) =>
+          category._id !== categoryId
       )
     );
 
@@ -243,7 +260,9 @@ export function TransactionProvider({ children }) {
   // Add Transaction
   // =========================
 
-  const addTransaction = async (transactionData) => {
+  const addTransaction = async (
+    transactionData
+  ) => {
     const token = getToken();
 
     if (!token) {
@@ -262,7 +281,9 @@ export function TransactionProvider({ children }) {
           amount: Number(transactionData.amount),
           type: transactionData.type,
           category: transactionData.category,
-          note: transactionData.description?.trim() || "",
+          note:
+            transactionData.description?.trim() ||
+            "",
           date: transactionData.date,
         }),
       }
@@ -272,7 +293,8 @@ export function TransactionProvider({ children }) {
 
     if (!response.ok) {
       throw new Error(
-        data.message || "Failed to create transaction."
+        data.message ||
+          "Failed to create transaction."
       );
     }
 
@@ -310,7 +332,9 @@ export function TransactionProvider({ children }) {
           amount: Number(transactionData.amount),
           type: transactionData.type,
           category: transactionData.category,
-          note: transactionData.description?.trim() || "",
+          note:
+            transactionData.description?.trim() ||
+            "",
           date: transactionData.date,
         }),
       }
@@ -320,7 +344,8 @@ export function TransactionProvider({ children }) {
 
     if (!response.ok) {
       throw new Error(
-        data.message || "Failed to update transaction."
+        data.message ||
+          "Failed to update transaction."
       );
     }
 
@@ -339,7 +364,9 @@ export function TransactionProvider({ children }) {
   // Delete Transaction
   // =========================
 
-  const deleteTransaction = async (transactionId) => {
+  const deleteTransaction = async (
+    transactionId
+  ) => {
     const token = getToken();
 
     if (!token) {
@@ -358,7 +385,8 @@ export function TransactionProvider({ children }) {
 
     if (!response.ok) {
       throw new Error(
-        data.message || "Failed to delete transaction."
+        data.message ||
+          "Failed to delete transaction."
       );
     }
 
@@ -373,19 +401,51 @@ export function TransactionProvider({ children }) {
   };
 
   // =========================
-  // Load Initial Data
+  // Load Data After Authentication
   // =========================
 
   useEffect(() => {
     const loadData = async () => {
-      await Promise.all([
-        fetchTransactions(),
-        fetchCategories(),
-      ]);
+      // Wait until AuthContext finishes checking
+      // the existing session.
+      if (authLoading) {
+        return;
+      }
+
+      // User is not logged in.
+      if (!user) {
+        setTransactions([]);
+        setCategories([]);
+        setLoading(false);
+        setError("");
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError("");
+
+        await Promise.all([
+          fetchTransactions(),
+          fetchCategories(),
+        ]);
+      } catch (error) {
+        console.error(
+          "Failed to load application data:",
+          error
+        );
+
+        setError(
+          error.message ||
+            "Failed to load application data."
+        );
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadData();
-  }, []);
+  }, [user, authLoading]);
 
   // =========================
   // Transaction Summary
@@ -399,7 +459,8 @@ export function TransactionProvider({ children }) {
       )
       .reduce(
         (total, transaction) =>
-          total + Number(transaction.amount || 0),
+          total +
+          Number(transaction.amount || 0),
         0
       );
 
@@ -410,7 +471,8 @@ export function TransactionProvider({ children }) {
       )
       .reduce(
         (total, transaction) =>
-          total + Number(transaction.amount || 0),
+          total +
+          Number(transaction.amount || 0),
         0
       );
 
