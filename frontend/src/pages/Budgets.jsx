@@ -210,7 +210,7 @@ function Budgets() {
 
         <div className="budget-summary-card">
           <div className="budget-summary-icon budget-icon-red">
-            ↓
+            &darr;
           </div>
 
           <div>
@@ -221,11 +221,12 @@ function Budgets() {
 
         <div className="budget-summary-card">
           <div className="budget-summary-icon budget-icon-green">
-            ✓
+            &#10003;
           </div>
 
           <div>
             <span>Remaining</span>
+
             <h2
               className={
                 budgetSummary.remaining >= 0
@@ -308,7 +309,9 @@ function Budgets() {
                     ></div>
                   </div>
 
-                  <span className={`budget-percentage ${status}`}>
+                  <span
+                    className={`budget-percentage ${status}`}
+                  >
                     {Math.round(percentage)}%
                   </span>
                 </div>
@@ -322,7 +325,9 @@ function Budgets() {
                         )} over budget`}
                   </span>
 
-                  <span className={`budget-status ${status}`}>
+                  <span
+                    className={`budget-status ${status}`}
+                  >
                     {status === "over"
                       ? "Over Budget"
                       : status === "warning"
@@ -336,6 +341,7 @@ function Budgets() {
         ) : (
           <div className="no-budgets">
             <h2>No Budgets Yet</h2>
+
             <p>
               Create your first monthly budget to start tracking
               your spending.
@@ -476,7 +482,9 @@ function Budgets() {
             aria-modal="true"
             aria-labelledby="delete-budget-title"
           >
-            <div className="delete-budget-icon">!</div>
+            <div className="delete-budget-icon">
+              !
+            </div>
 
             <h2 id="delete-budget-title">
               Delete Budget?
