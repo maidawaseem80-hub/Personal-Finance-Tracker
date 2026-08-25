@@ -1,37 +1,89 @@
+import { useEffect, useState } from "react";
 import "./Reports.css";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function Reports() {
-  const categoryData = [
-    { category: "Food", amount: 12500 },
-    { category: "Transport", amount: 8000 },
-    { category: "Bills", amount: 15000 },
-    { category: "Entertainment", amount: 5000 },
-  ];
+  const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0, balance: 0 });
+  const [categoryData, setCategoryData] = useState([]);
+  const [monthlyData, setMonthlyData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const monthlyData = [
-    { month: "Jan", income: 70000, expense: 45000 },
-    { month: "Feb", income: 75000, expense: 48000 },
-    { month: "Mar", income: 70000, expense: 52000 },
-    { month: "Apr", income: 80000, expense: 50000 },
-    { month: "May", income: 85000, expense: 58000 },
-    { month: "Jun", income: 80000, expense: 55000 },
-  ];
+  const getToken = () => localStorage.getItem("token");
 
-  const totalIncome = monthlyData.reduce(
-    (total, item) => total + item.income,
-    0
-  );
+  const getAuthHeaders = () => ({
+    Authorization: `Bearer ${getToken()}`,
+  });
 
-  const totalExpenses = monthlyData.reduce(
-    (total, item) => total + item.expense,
-    0
-  );
+  const fetchReportsData = async () => {
+    const token = getToken();
 
-  const totalSavings = totalIncome - totalExpenses;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const [summaryRes, categoryRes, monthlyRes] = await Promise.all([
+        fetch(`${API_URL}/dashboard/summary`, { headers: getAuthHeaders() }),
+        fetch(`${API_URL}/dashboard/by-category`, { headers: getAuthHeaders() }),
+        fetch(`${API_URL}/dashboard/monthly-trend`, { headers: getAuthHeaders() }),
+      ]);
+
+      const summaryJson = await summaryRes.json();
+      const categoryJson = await categoryRes.json();
+      const monthlyJson = await monthlyRes.json();
+
+      if (!summaryRes.ok) throw new Error(summaryJson.message || "Failed to load summary.");
+      if (!categoryRes.ok) throw new Error(categoryJson.message || "Failed to load category data.");
+      if (!monthlyRes.ok) throw new Error(monthlyJson.message || "Failed to load monthly data.");
+
+      setSummary(summaryJson);
+      setCategoryData(categoryJson.data || []);
+      setMonthlyData(monthlyJson.data || []);
+    } catch (error) {
+      console.error("Failed to load reports:", error);
+      setError(error.message || "Failed to load reports.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReportsData();
+  }, []);
 
   const formatAmount = (amount) => {
-    return `Rs. ${amount.toLocaleString()}`;
+    return `Rs. ${Number(amount || 0).toLocaleString()}`;
   };
+
+  const handleExportCSV = () => {
+    window.open(`${API_URL}/export/csv?token=${getToken()}`, "_blank");
+  };
+
+  const handleExportPDF = () => {
+    window.open(`${API_URL}/export/pdf?token=${getToken()}`, "_blank");
+  };
+
+  const maxCategoryAmount = Math.max(...categoryData.map((item) => item.total), 1);
+
+  if (loading) {
+    return (
+      <div className="reports-page">
+        <div className="reports-header">
+          <div>
+            <h1>Reports</h1>
+            <p>Analyze your income, expenses, and spending patterns.</p>
+          </div>
+        </div>
+        <p>Loading reports...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="reports-page">
@@ -42,36 +94,32 @@ function Reports() {
         </div>
 
         <div className="reports-actions">
-          <button type="button" className="export-button">
+          <button type="button" className="export-button" onClick={handleExportCSV}>
             Export CSV
           </button>
 
-          <button type="button" className="export-button">
+          <button type="button" className="export-button" onClick={handleExportPDF}>
             Export PDF
           </button>
         </div>
       </div>
 
+      {error && <p style={{ color: "#b91c1c" }}>{error}</p>}
+
       <div className="report-summary">
         <div className="report-summary-card">
           <span>Total Income</span>
-          <strong className="income-value">
-            {formatAmount(totalIncome)}
-          </strong>
+          <strong className="income-value">{formatAmount(summary.totalIncome)}</strong>
         </div>
 
         <div className="report-summary-card">
           <span>Total Expenses</span>
-          <strong className="expense-value">
-            {formatAmount(totalExpenses)}
-          </strong>
+          <strong className="expense-value">{formatAmount(summary.totalExpense)}</strong>
         </div>
 
         <div className="report-summary-card">
           <span>Total Savings</span>
-          <strong className="savings-value">
-            {formatAmount(totalSavings)}
-          </strong>
+          <strong className="savings-value">{formatAmount(summary.balance)}</strong>
         </div>
       </div>
 
@@ -85,23 +133,27 @@ function Reports() {
           </div>
 
           <div className="category-list">
-            {categoryData.map((item) => (
-              <div className="category-row" key={item.category}>
-                <div className="category-info">
-                  <span>{item.category}</span>
-                  <strong>{formatAmount(item.amount)}</strong>
-                </div>
+            {categoryData.length > 0 ? (
+              categoryData.map((item) => (
+                <div className="category-row" key={item.category}>
+                  <div className="category-info">
+                    <span>{item.category}</span>
+                    <strong>{formatAmount(item.total)}</strong>
+                  </div>
 
-                <div className="category-bar">
-                  <div
-                    className="category-bar-fill"
-                    style={{
-                      width: `${Math.min(item.amount / 150, 100)}%`,
-                    }}
-                  />
+                  <div className="category-bar">
+                    <div
+                      className="category-bar-fill"
+                      style={{
+                        width: `${(item.total / maxCategoryAmount) * 100}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p>No expense data yet.</p>
+            )}
           </div>
         </section>
 
@@ -109,26 +161,26 @@ function Reports() {
           <div className="report-card-header">
             <div>
               <h2>Monthly Overview</h2>
-              <p>Income versus expenses</p>
+              <p>Expense trend by month</p>
             </div>
           </div>
 
           <div className="monthly-list">
-            {monthlyData.map((item) => (
-              <div className="monthly-row" key={item.month}>
-                <div className="monthly-month">{item.month}</div>
+            {monthlyData.length > 0 ? (
+              monthlyData.map((item) => (
+                <div className="monthly-row" key={`${item.year}-${item.month}`}>
+                  <div className="monthly-month">{item.monthName}</div>
 
-                <div className="monthly-values">
-                  <span className="monthly-income">
-                    + {formatAmount(item.income)}
-                  </span>
-
-                  <span className="monthly-expense">
-                    - {formatAmount(item.expense)}
-                  </span>
+                  <div className="monthly-values">
+                    <span className="monthly-expense">
+                      - {formatAmount(item.total)}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p>No monthly data yet.</p>
+            )}
           </div>
         </section>
       </div>
