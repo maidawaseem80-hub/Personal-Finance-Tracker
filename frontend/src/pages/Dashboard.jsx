@@ -3,8 +3,21 @@ import { Link } from "react-router-dom";
 import "./Dashboard.css";
 import { useTransactions } from "../context/TransactionContext";
 
+const CATEGORY_COLORS = [
+  "#2563eb",
+  "#f97316",
+  "#dc2626",
+  "#16a34a",
+  "#9333ea",
+  "#0891b2",
+];
+
 function Dashboard() {
-  const { transactions, transactionSummary } = useTransactions();
+  const {
+    transactions,
+    categories,
+    transactionSummary,
+  } = useTransactions();
 
   const formatCurrency = (amount) => {
     return `Rs. ${Number(amount || 0).toLocaleString()}`;
@@ -19,7 +32,11 @@ function Dashboard() {
       return category.name || "Uncategorized";
     }
 
-    return category;
+    const match = categories.find(
+      (item) => item._id === category
+    );
+
+    return match?.name || "Uncategorized";
   };
 
   const getTransactionDescription = (transaction) => {
@@ -44,8 +61,12 @@ function Dashboard() {
 
     return transactions.filter((transaction) => {
       const transactionDate = new Date(
-        `${transaction.date}T00:00:00`
+        transaction.date
       );
+
+      if (Number.isNaN(transactionDate.getTime())) {
+        return false;
+      }
 
       return (
         transactionDate.getMonth() === now.getMonth() &&
@@ -79,7 +100,7 @@ function Dashboard() {
   }, [currentMonthTransactions]);
 
   const categorySummary = useMemo(() => {
-    const categories = {};
+    const categoryTotals = {};
 
     currentMonthTransactions
       .filter(
@@ -90,19 +111,19 @@ function Dashboard() {
           transaction.category
         );
 
-        if (!categories[categoryName]) {
-          categories[categoryName] = 0;
+        if (!categoryTotals[categoryName]) {
+          categoryTotals[categoryName] = 0;
         }
 
-        categories[categoryName] += Number(
+        categoryTotals[categoryName] += Number(
           transaction.amount || 0
         );
       });
 
-    return Object.entries(categories)
+    return Object.entries(categoryTotals)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 4);
-  }, [currentMonthTransactions]);
+  }, [currentMonthTransactions, categories]);
 
   const maxCategoryAmount =
     categorySummary.length > 0
@@ -126,11 +147,29 @@ function Dashboard() {
         .split("T")[0];
 
       const dailyExpenses = transactions
-        .filter(
-          (transaction) =>
-            transaction.type === "expense" &&
-            transaction.date === dateString
-        )
+        .filter((transaction) => {
+          if (transaction.type !== "expense") {
+            return false;
+          }
+
+          const transactionDate = new Date(
+            transaction.date
+          );
+
+          if (
+            Number.isNaN(
+              transactionDate.getTime()
+            )
+          ) {
+            return false;
+          }
+
+          return (
+            transactionDate
+              .toISOString()
+              .split("T")[0] === dateString
+          );
+        })
         .reduce(
           (total, transaction) =>
             total + Number(transaction.amount || 0),
@@ -141,6 +180,13 @@ function Dashboard() {
         label: date.toLocaleDateString("en-US", {
           weekday: "short",
         }),
+        dateLabel: date.toLocaleDateString(
+          "en-US",
+          {
+            month: "short",
+            day: "numeric",
+          }
+        ),
         amount: dailyExpenses,
       });
     }
@@ -154,9 +200,17 @@ function Dashboard() {
   );
 
   const formatDate = (date) => {
-    return new Date(
-      `${date}T00:00:00`
-    ).toLocaleDateString("en-US", {
+    if (!date) {
+      return "-";
+    }
+
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return "-";
+    }
+
+    return parsedDate.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
     });
@@ -164,12 +218,22 @@ function Dashboard() {
 
   return (
     <div className="page-content dashboard-page">
-      {/* Dashboard Header */}
+
+      {/* =========================
+          Dashboard Header
+      ========================= */}
+
       <div className="dashboard-header">
         <div>
+          <span className="dashboard-eyebrow">
+            Personal Finance
+          </span>
+
           <h1>Dashboard</h1>
+
           <p>
-            Welcome back! Here's your financial overview.
+            Welcome back! Here's your financial
+            overview.
           </p>
         </div>
 
@@ -181,8 +245,12 @@ function Dashboard() {
         </Link>
       </div>
 
-      {/* Summary Cards */}
+      {/* =========================
+          Summary Cards
+      ========================= */}
+
       <div className="summary-grid">
+
         <div className="summary-card">
           <div className="summary-card-top">
             <span className="summary-label">
@@ -254,28 +322,42 @@ function Dashboard() {
             All recorded expenses
           </p>
         </div>
+
       </div>
 
-      {/* Monthly Statistics */}
+      {/* =========================
+          Main Dashboard Grid
+      ========================= */}
+
       <div className="dashboard-grid">
-        {/* Monthly Overview */}
+
+        {/* =========================
+            Expense Overview
+        ========================= */}
+
         <section className="dashboard-card">
+
           <div className="card-header">
             <div>
-              <h2>Monthly Overview</h2>
-              <p>Expenses from the last 7 days</p>
+              <h2>Expense Overview</h2>
+
+              <p>
+                Your spending activity over the last
+                7 days
+              </p>
             </div>
 
             <span className="card-header-badge">
-              This Month
+              Last 7 days
             </span>
           </div>
 
           <div className="overview-chart">
+
             {chartData.map((item, index) => {
               const height =
                 item.amount === 0
-                  ? 5
+                  ? 4
                   : Math.max(
                       (item.amount /
                         maxChartAmount) *
@@ -287,6 +369,9 @@ function Dashboard() {
                 <div
                   className="chart-column"
                   key={`${item.label}-${index}`}
+                  title={`${item.dateLabel}: ${formatCurrency(
+                    item.amount
+                  )}`}
                 >
                   <div className="chart-value">
                     {item.amount > 0
@@ -296,53 +381,95 @@ function Dashboard() {
 
                   <div className="chart-bar-wrapper">
                     <div
-                      className="chart-bar"
+                      className={`chart-bar${
+                        item.amount === 0
+                          ? " chart-bar-empty"
+                          : ""
+                      }`}
                       style={{
                         height: `${height}%`,
                       }}
-                    ></div>
+                    />
                   </div>
 
                   <span className="chart-label">
                     {item.label}
+                    <br />
+
+                    <span className="chart-label-date">
+                      {item.dateLabel}
+                    </span>
                   </span>
                 </div>
               );
             })}
+
           </div>
 
           <div className="monthly-statistics">
-            <div>
-              <span>Monthly Income</span>
 
-              <strong className="monthly-income">
-                {formatCurrency(monthlyIncome)}
-              </strong>
+            <div className="monthly-stat monthly-stat-income">
+              <span className="monthly-stat-icon">
+                ↑
+              </span>
+
+              <div>
+                <span>Income this month</span>
+
+                <strong className="monthly-income">
+                  {formatCurrency(monthlyIncome)}
+                </strong>
+              </div>
             </div>
 
-            <div>
-              <span>Monthly Expenses</span>
+            <div className="monthly-stat monthly-stat-expense">
+              <span className="monthly-stat-icon">
+                ↓
+              </span>
 
-              <strong className="monthly-expense">
-                {formatCurrency(monthlyExpenses)}
-              </strong>
+              <div>
+                <span>Expenses this month</span>
+
+                <strong className="monthly-expense">
+                  {formatCurrency(monthlyExpenses)}
+                </strong>
+              </div>
             </div>
+
           </div>
+
         </section>
 
-        {/* Spending by Category */}
-        <section className="dashboard-card">
-          <div className="card-header">
+        {/* =========================
+            Spending by Category
+        ========================= */}
+
+        <section className="dashboard-card category-card">
+
+          <div className="card-header category-card-header">
             <div>
               <h2>Spending by Category</h2>
-              <p>Your biggest expense categories</p>
+
+              <p>
+                Where your money is going this month
+              </p>
             </div>
+
+            {categorySummary.length > 0 && (
+              <span className="category-count">
+                {categorySummary.length}
+                {categorySummary.length === 1
+                  ? " category"
+                  : " categories"}
+              </span>
+            )}
           </div>
 
           {categorySummary.length > 0 ? (
             <div className="category-list">
+
               {categorySummary.map(
-                ([category, amount]) => {
+                ([category, amount], index) => {
                   const percentage =
                     maxCategoryAmount > 0
                       ? (amount /
@@ -350,34 +477,91 @@ function Dashboard() {
                         100
                       : 0;
 
+                  const shareOfTotal =
+                    monthlyExpenses > 0
+                      ? (amount /
+                          monthlyExpenses) *
+                        100
+                      : 0;
+
+                  const dotColor =
+                    CATEGORY_COLORS[
+                      index %
+                        CATEGORY_COLORS.length
+                    ];
+
                   return (
                     <div
                       className="category-item"
                       key={category}
                     >
-                      <div className="category-info">
-                        <span>{category}</span>
 
-                        <strong>
+                      {/* Category Name + Amount */}
+
+                      <div className="category-top">
+                        <div className="category-name-wrapper">
+
+                          <span
+                            className="category-dot"
+                            style={{
+                              backgroundColor:
+                                dotColor,
+                            }}
+                          />
+
+                          <span
+                            className="category-name"
+                            title={category}
+                          >
+                            {category}
+                          </span>
+
+                        </div>
+
+                        <span className="category-amount">
                           {formatCurrency(amount)}
-                        </strong>
+                        </span>
                       </div>
 
-                      <div className="category-progress">
-                        <div
-                          className="category-progress-fill"
+                      {/* Progress + Percentage */}
+
+                      <div className="category-progress-row">
+
+                        <div className="category-progress">
+                          <div
+                            className="category-progress-fill"
+                            style={{
+                              width: `${percentage}%`,
+                              backgroundColor:
+                                dotColor,
+                            }}
+                          />
+                        </div>
+
+                        <span
+                          className="category-percentage"
                           style={{
-                            width: `${percentage}%`,
+                            color: dotColor,
                           }}
-                        ></div>
+                        >
+                          {shareOfTotal.toFixed(0)}%
+                          <span>
+                            {" "}
+                            of expenses
+                          </span>
+                        </span>
+
                       </div>
+
                     </div>
                   );
                 }
               )}
+
             </div>
           ) : (
             <div className="dashboard-empty-state">
+
               <div className="empty-state-icon">
                 ✨
               </div>
@@ -385,33 +569,66 @@ function Dashboard() {
               <h3>No expenses yet</h3>
 
               <p>
-                Add an expense to see your spending by
-                category.
+                Add an expense to see your spending
+                by category.
               </p>
 
               <Link to="/transactions">
                 Add Transaction
               </Link>
+
             </div>
           )}
+
+          {/* Total Expenses */}
+
+          {categorySummary.length > 0 && (
+            <div className="category-total">
+
+              <div>
+                <span>Total expenses</span>
+
+                <small>
+                  This month
+                </small>
+              </div>
+
+              <strong>
+                {formatCurrency(monthlyExpenses)}
+              </strong>
+
+            </div>
+          )}
+
         </section>
+
       </div>
 
-      {/* Recent Transactions */}
+      {/* =========================
+          Recent Transactions
+      ========================= */}
+
       <section className="dashboard-card transactions-card">
+
         <div className="card-header">
+
           <div>
             <h2>Recent Transactions</h2>
-            <p>Your latest financial activity</p>
+
+            <p>
+              Your latest financial activity
+            </p>
           </div>
 
           <Link to="/transactions">
-            View All
+            View all →
           </Link>
+
         </div>
 
         {recentTransactions.length > 0 ? (
           <div className="dashboard-transactions-table">
+
             <div className="dashboard-transaction-row dashboard-transaction-heading">
               <span>Date</span>
               <span>Description</span>
@@ -420,61 +637,70 @@ function Dashboard() {
               <span>Amount</span>
             </div>
 
-            {recentTransactions.map((transaction) => (
-              <div
-                className="dashboard-transaction-row"
-                key={transaction._id}
-              >
-                <span>
-                  {formatDate(transaction.date)}
-                </span>
-
-                <span className="dashboard-transaction-description">
-                  {getTransactionDescription(
-                    transaction
-                  )}
-                </span>
-
-                <span>
-                  {getCategoryName(
-                    transaction.category
-                  )}
-                </span>
-
-                <span>
-                  <span
-                    className={`dashboard-transaction-type ${transaction.type}`}
-                  >
-                    {transaction.type === "income"
-                      ? "Income"
-                      : "Expense"}
-                  </span>
-                </span>
-
-                <span
-                  className={`dashboard-transaction-amount ${
-                    transaction.type === "income"
-                      ? "amount-positive"
-                      : "amount-negative"
-                  }`}
+            {recentTransactions.map(
+              (transaction) => (
+                <div
+                  className="dashboard-transaction-row"
+                  key={transaction._id}
                 >
-                  <span className="amount-sign">
-                    {transaction.type === "income"
-                      ? "+"
-                      : "-"}
+
+                  <span className="dashboard-transaction-date">
+                    {formatDate(transaction.date)}
                   </span>
 
-                  <span className="amount-value">
-                    {formatCurrency(
-                      transaction.amount
+                  <span className="dashboard-transaction-description">
+                    {getTransactionDescription(
+                      transaction
                     )}
                   </span>
-                </span>
-              </div>
-            ))}
+
+                  <span className="dashboard-transaction-category">
+                    {getCategoryName(
+                      transaction.category
+                    )}
+                  </span>
+
+                  <span>
+                    <span
+                      className={`dashboard-transaction-type ${transaction.type}`}
+                    >
+                      {transaction.type ===
+                      "income"
+                        ? "Income"
+                        : "Expense"}
+                    </span>
+                  </span>
+
+                  <span
+                    className={`dashboard-transaction-amount ${
+                      transaction.type ===
+                      "income"
+                        ? "amount-positive"
+                        : "amount-negative"
+                    }`}
+                  >
+                    <span className="amount-sign">
+                      {transaction.type ===
+                      "income"
+                        ? "+"
+                        : "-"}
+                    </span>
+
+                    <span className="amount-value">
+                      {formatCurrency(
+                        transaction.amount
+                      )}
+                    </span>
+                  </span>
+
+                </div>
+              )
+            )}
+
           </div>
         ) : (
           <div className="dashboard-empty-transactions">
+
             <h3>No transactions yet</h3>
 
             <p>
@@ -485,9 +711,12 @@ function Dashboard() {
             <Link to="/transactions">
               + Add Transaction
             </Link>
+
           </div>
         )}
+
       </section>
+
     </div>
   );
 }

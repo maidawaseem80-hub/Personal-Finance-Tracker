@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import "./Budgets.css";
 import { useTransactions } from "../context/TransactionContext";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { useBudgets } from "../context/BudgetContext";
 
 function Budgets() {
   const {
@@ -11,11 +10,17 @@ function Budgets() {
     loading: transactionLoading,
   } = useTransactions();
 
-  const [budgets, setBudgets] = useState([]);
+  const {
+    budgets,
+    loading,
+    error: contextError,
+    createBudget,
+    updateBudget,
+    deleteBudget,
+  } = useBudgets();
 
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [formError, setFormError] = useState("");
 
   const [showForm, setShowForm] = useState(false);
   const [editingBudget, setEditingBudget] = useState(null);
@@ -27,66 +32,9 @@ function Budgets() {
     period: "monthly",
   });
 
-  // =========================
-  // Authentication
-  // =========================
-
-  const getToken = () => {
-    return localStorage.getItem("token");
-  };
-
-  const getAuthHeaders = () => {
-    const token = getToken();
-
-    return {
-      Authorization: `Bearer ${token}`,
-    };
-  };
-
-  // =========================
-  // Fetch Budgets
-  // =========================
-
-  const fetchBudgets = async () => {
-    const token = getToken();
-
-    if (!token) {
-      setBudgets([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError("");
-
-      const response = await fetch(`${API_URL}/budgets`, {
-        headers: getAuthHeaders(),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to fetch budgets."
-        );
-      }
-
-      setBudgets(data.data || []);
-    } catch (error) {
-      console.error("Failed to fetch budgets:", error);
-
-      setError(
-        error.message || "Failed to fetch budgets."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBudgets();
-  }, []);
+  // The error shown on the page: either the context's fetch
+  // error, or a local form/action error, whichever is set.
+  const error = formError || contextError;
 
   // =========================
   // Currency
@@ -220,7 +168,7 @@ function Budgets() {
   const handleOpenAddForm = () => {
     resetForm();
     setEditingBudget(null);
-    setError("");
+    setFormError("");
     setShowForm(true);
   };
 
@@ -238,7 +186,7 @@ function Budgets() {
       period: budget.period || "monthly",
     });
 
-    setError("");
+    setFormError("");
     setShowForm(true);
   };
 
@@ -250,7 +198,7 @@ function Budgets() {
     setShowForm(false);
     setEditingBudget(null);
     resetForm();
-    setError("");
+    setFormError("");
   };
 
   // =========================
@@ -260,30 +208,23 @@ function Budgets() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const token = getToken();
-
-    if (!token) {
-      setError("You must be logged in.");
-      return;
-    }
-
     const amount = Number(formData.amount);
 
     if (!amount || amount <= 0) {
-      setError(
+      setFormError(
         "Budget amount must be greater than 0."
       );
       return;
     }
 
     if (!formData.period) {
-      setError("Please select a budget period.");
+      setFormError("Please select a budget period.");
       return;
     }
 
     try {
       setSaving(true);
-      setError("");
+      setFormError("");
 
       const budgetData = {
         amount,
@@ -291,52 +232,17 @@ function Budgets() {
         category: formData.category || null,
       };
 
-      const url = editingBudget
-        ? `${API_URL}/budgets/${editingBudget._id}`
-        : `${API_URL}/budgets`;
-
-      const method = editingBudget
-        ? "PUT"
-        : "POST";
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          ...getAuthHeaders(),
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(budgetData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-            "Failed to save budget."
-        );
-      }
-
       if (editingBudget) {
-        setBudgets((currentBudgets) =>
-          currentBudgets.map((budget) =>
-            budget._id === editingBudget._id
-              ? data.data
-              : budget
-          )
-        );
+        await updateBudget(editingBudget._id, budgetData);
       } else {
-        setBudgets((currentBudgets) => [
-          data.data,
-          ...currentBudgets,
-        ]);
+        await createBudget(budgetData);
       }
 
       handleCloseForm();
     } catch (error) {
       console.error("Failed to save budget:", error);
 
-      setError(
+      setFormError(
         error.message ||
           "Failed to save budget."
       );
@@ -351,7 +257,7 @@ function Budgets() {
 
   const handleDeleteClick = (budget) => {
     setBudgetToDelete(budget);
-    setError("");
+    setFormError("");
   };
 
   const handleCancelDelete = () => {
@@ -363,40 +269,11 @@ function Budgets() {
       return;
     }
 
-    const token = getToken();
-
-    if (!token) {
-      setError("You must be logged in.");
-      return;
-    }
-
     try {
       setSaving(true);
-      setError("");
+      setFormError("");
 
-      const response = await fetch(
-        `${API_URL}/budgets/${budgetToDelete._id}`,
-        {
-          method: "DELETE",
-          headers: getAuthHeaders(),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-            "Failed to delete budget."
-        );
-      }
-
-      setBudgets((currentBudgets) =>
-        currentBudgets.filter(
-          (budget) =>
-            budget._id !== budgetToDelete._id
-        )
-      );
+      await deleteBudget(budgetToDelete._id);
 
       setBudgetToDelete(null);
     } catch (error) {
@@ -405,7 +282,7 @@ function Budgets() {
         error
       );
 
-      setError(
+      setFormError(
         error.message ||
           "Failed to delete budget."
       );

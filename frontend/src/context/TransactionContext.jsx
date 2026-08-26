@@ -22,16 +22,12 @@ export function TransactionProvider({ children }) {
   const [error, setError] = useState("");
 
   // =========================
-  // Get Authentication Token
+  // Authentication
   // =========================
 
   const getToken = () => {
     return localStorage.getItem("token");
   };
-
-  // =========================
-  // Common Auth Headers
-  // =========================
 
   const getAuthHeaders = () => {
     const token = getToken();
@@ -42,7 +38,7 @@ export function TransactionProvider({ children }) {
   };
 
   // =========================
-  // Fetch Transactions
+  // Fetch All Transactions
   // =========================
 
   const fetchTransactions = async () => {
@@ -50,12 +46,14 @@ export function TransactionProvider({ children }) {
 
     if (!token) {
       setTransactions([]);
-      return;
+      return [];
     }
 
     try {
+      // Request a large limit so dashboard,
+      // budgets and reports have complete data.
       const response = await fetch(
-        `${API_URL}/transactions`,
+        `${API_URL}/transactions?page=1&limit=1000`,
         {
           headers: getAuthHeaders(),
         }
@@ -65,11 +63,16 @@ export function TransactionProvider({ children }) {
 
       if (!response.ok) {
         throw new Error(
-          data.message || "Failed to fetch transactions."
+          data.message ||
+            "Failed to fetch transactions."
         );
       }
 
-      setTransactions(data.data || []);
+      const transactionData = data.data || [];
+
+      setTransactions(transactionData);
+
+      return transactionData;
     } catch (error) {
       console.error(
         "Failed to fetch transactions:",
@@ -80,6 +83,8 @@ export function TransactionProvider({ children }) {
         error.message ||
           "Failed to fetch transactions."
       );
+
+      throw error;
     }
   };
 
@@ -92,7 +97,7 @@ export function TransactionProvider({ children }) {
 
     if (!token) {
       setCategories([]);
-      return;
+      return [];
     }
 
     try {
@@ -112,7 +117,11 @@ export function TransactionProvider({ children }) {
         );
       }
 
-      setCategories(data.data || []);
+      const categoryData = data.data || [];
+
+      setCategories(categoryData);
+
+      return categoryData;
     } catch (error) {
       console.error(
         "Failed to fetch categories:",
@@ -123,6 +132,8 @@ export function TransactionProvider({ children }) {
         error.message ||
           "Failed to fetch categories."
       );
+
+      throw error;
     }
   };
 
@@ -283,6 +294,7 @@ export function TransactionProvider({ children }) {
           category: transactionData.category,
           note:
             transactionData.description?.trim() ||
+            transactionData.note?.trim() ||
             "",
           date: transactionData.date,
         }),
@@ -334,6 +346,7 @@ export function TransactionProvider({ children }) {
           category: transactionData.category,
           note:
             transactionData.description?.trim() ||
+            transactionData.note?.trim() ||
             "",
           date: transactionData.date,
         }),
@@ -401,18 +414,17 @@ export function TransactionProvider({ children }) {
   };
 
   // =========================
-  // Load Data After Authentication
+  // Load Application Data
   // =========================
 
   useEffect(() => {
     const loadData = async () => {
-      // Wait until AuthContext finishes checking
-      // the existing session.
+      // Wait for AuthContext
       if (authLoading) {
         return;
       }
 
-      // User is not logged in.
+      // User is logged out
       if (!user) {
         setTransactions([]);
         setCategories([]);
