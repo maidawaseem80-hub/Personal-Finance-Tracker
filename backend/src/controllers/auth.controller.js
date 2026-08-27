@@ -108,16 +108,31 @@ export const forgotPassword = asyncHandler(async (req, res) => {
       `,
       text: `You requested a password reset. Visit this link within 15 minutes: ${resetUrl}`,
     });
-  } catch (err) {
-    // If email sending fails, don't leave a stale reset token on the user
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-    await user.save();
+//   } catch (err) {
+//   console.error("========== EMAIL ERROR ==========");
+//   console.error(err);
 
-    res.status(500);
-    throw new Error('Email could not be sent, please try again later');
-  }
+//   user.resetPasswordToken = undefined;
+//   user.resetPasswordExpires = undefined;
+//   await user.save();
 
+//   res.status(500);
+//   throw new Error("Email could not be sent");
+// }}
+  }catch (err) {
+  console.error("EMAIL ERROR:");
+  console.error(err);
+
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
+
+  res.status(500).json({
+    success: false,
+    message: err.message,
+    error: err,
+  });
+};
   res.status(200).json({
     success: true,
     message: 'If that email exists, a reset link has been sent',
