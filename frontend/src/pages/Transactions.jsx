@@ -271,7 +271,7 @@ function Transactions() {
         </div>
       </div>
 
-      {/* Add / Edit Transaction Modal */}
+      {/* Add / Edit Transaction Model */}
       {showForm && (
         <div className="transaction-modal-overlay">
           <div

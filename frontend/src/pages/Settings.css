@@ -134,16 +134,15 @@
   width: fit-content;
   padding: 11px 18px;
   border: 1px solid #2563eb;
-  background: #2563eb;
+  background: #1783c1;
   color: #ffffff;
 }
 
 .settings-primary-button:hover {
-  background: #1d4ed8;
+  background: #0a3c6e;
   border-color: #1d4ed8;
   box-shadow: 0 2px 5px rgba(37, 99, 235, 0.2);
 }
-
 .settings-primary-button:active,
 .settings-secondary-button:active,
 .settings-edit-button:active,

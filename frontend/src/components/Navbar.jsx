@@ -28,7 +28,7 @@ function Navbar() {
             onClick={() => setShowNotifications(!showNotifications)}
             aria-label="Notifications"
           >
-            🔔
+            <div className="ugh">🔔</div>
           </button>
 
           {showNotifications && (
@@ -60,7 +60,7 @@ function Navbar() {
           )}
         </div>
 
-        <Link to="/settings" className="profile-button">
+        <Link to="/settings" className="profile-button" >
           Profile
         </Link>
 
