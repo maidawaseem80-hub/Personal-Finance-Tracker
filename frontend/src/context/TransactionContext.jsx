@@ -38,7 +38,7 @@ export function TransactionProvider({ children }) {
   };
 
   // =========================
-  // Fetch All Transactions
+  // Fetch Transactions
   // =========================
 
   const fetchTransactions = async () => {
@@ -50,10 +50,8 @@ export function TransactionProvider({ children }) {
     }
 
     try {
-      // Request a large limit so dashboard,
-      // budgets and reports have complete data.
       const response = await fetch(
-        `${API_URL}/transactions?page=1&limit=1000`,
+        `${API_URL}/transactions?limit=1000`,
         {
           headers: getAuthHeaders(),
         }
@@ -63,12 +61,13 @@ export function TransactionProvider({ children }) {
 
       if (!response.ok) {
         throw new Error(
-          data.message ||
-            "Failed to fetch transactions."
+          data.message || "Failed to fetch transactions."
         );
       }
 
-      const transactionData = data.data || [];
+      const transactionData = Array.isArray(data.data)
+        ? data.data
+        : [];
 
       setTransactions(transactionData);
 
@@ -84,7 +83,9 @@ export function TransactionProvider({ children }) {
           "Failed to fetch transactions."
       );
 
-      throw error;
+      setTransactions([]);
+
+      return [];
     }
   };
 
@@ -112,12 +113,13 @@ export function TransactionProvider({ children }) {
 
       if (!response.ok) {
         throw new Error(
-          data.message ||
-            "Failed to fetch categories."
+          data.message || "Failed to fetch categories."
         );
       }
 
-      const categoryData = data.data || [];
+      const categoryData = Array.isArray(data.data)
+        ? data.data
+        : [];
 
       setCategories(categoryData);
 
@@ -133,7 +135,9 @@ export function TransactionProvider({ children }) {
           "Failed to fetch categories."
       );
 
-      throw error;
+      setCategories([]);
+
+      return [];
     }
   };
 
@@ -141,11 +145,45 @@ export function TransactionProvider({ children }) {
   // Create Category
   // =========================
 
-  const createCategory = async (name, type) => {
+  const createCategory = async (
+    nameOrData,
+    type
+  ) => {
     const token = getToken();
 
     if (!token) {
       throw new Error("You must be logged in.");
+    }
+
+    // Supports both:
+    // createCategory("Salary", "income")
+    // createCategory({ name: "Salary", type: "income" })
+
+    const name =
+      typeof nameOrData === "object"
+        ? nameOrData?.name
+        : nameOrData;
+
+    const categoryType =
+      typeof nameOrData === "object"
+        ? nameOrData?.type
+        : type;
+
+    const trimmedName = String(
+      name || ""
+    ).trim();
+
+    if (!trimmedName) {
+      throw new Error("Category name is required.");
+    }
+
+    if (
+      categoryType !== "income" &&
+      categoryType !== "expense"
+    ) {
+      throw new Error(
+        "Category type must be income or expense."
+      );
     }
 
     const response = await fetch(
@@ -157,8 +195,8 @@ export function TransactionProvider({ children }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: name.trim(),
-          type,
+          name: trimmedName,
+          type: categoryType,
         }),
       }
     );
@@ -172,12 +210,14 @@ export function TransactionProvider({ children }) {
       );
     }
 
+    const newCategory = data.data;
+
     setCategories((currentCategories) => [
-      data.data,
+      newCategory,
       ...currentCategories,
     ]);
 
-    return data.data;
+    return newCategory;
   };
 
   // =========================
@@ -194,6 +234,25 @@ export function TransactionProvider({ children }) {
       throw new Error("You must be logged in.");
     }
 
+    const name = String(
+      categoryData?.name || ""
+    ).trim();
+
+    const type = categoryData?.type;
+
+    if (!name) {
+      throw new Error("Category name is required.");
+    }
+
+    if (
+      type !== "income" &&
+      type !== "expense"
+    ) {
+      throw new Error(
+        "Category type must be income or expense."
+      );
+    }
+
     const response = await fetch(
       `${API_URL}/categories/${categoryId}`,
       {
@@ -203,8 +262,8 @@ export function TransactionProvider({ children }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: categoryData.name.trim(),
-          type: categoryData.type,
+          name,
+          type,
         }),
       }
     );
@@ -218,22 +277,26 @@ export function TransactionProvider({ children }) {
       );
     }
 
+    const updatedCategory = data.data;
+
     setCategories((currentCategories) =>
       currentCategories.map((category) =>
         category._id === categoryId
-          ? data.data
+          ? updatedCategory
           : category
       )
     );
 
-    return data.data;
+    return updatedCategory;
   };
 
   // =========================
   // Delete Category
   // =========================
 
-  const deleteCategory = async (categoryId) => {
+  const deleteCategory = async (
+    categoryId
+  ) => {
     const token = getToken();
 
     if (!token) {
@@ -268,6 +331,43 @@ export function TransactionProvider({ children }) {
   };
 
   // =========================
+  // Load All Data
+  // =========================
+
+  const fetchAllData = async () => {
+    const token = getToken();
+
+    if (!token) {
+      setTransactions([]);
+      setCategories([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      await Promise.all([
+        fetchTransactions(),
+        fetchCategories(),
+      ]);
+    } catch (error) {
+      console.error(
+        "Failed to load transaction data:",
+        error
+      );
+
+      setError(
+        error.message ||
+          "Failed to load transaction data."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =========================
   // Add Transaction
   // =========================
 
@@ -289,12 +389,14 @@ export function TransactionProvider({ children }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: Number(transactionData.amount),
+          amount: Number(
+            transactionData.amount
+          ),
           type: transactionData.type,
           category: transactionData.category,
           note:
-            transactionData.description?.trim() ||
-            transactionData.note?.trim() ||
+            transactionData.note ||
+            transactionData.description ||
             "",
           date: transactionData.date,
         }),
@@ -306,16 +408,40 @@ export function TransactionProvider({ children }) {
     if (!response.ok) {
       throw new Error(
         data.message ||
-          "Failed to create transaction."
+          "Failed to add transaction."
       );
     }
 
-    setTransactions((currentTransactions) => [
-      data.data,
-      ...currentTransactions,
-    ]);
+    let newTransaction = data.data;
 
-    return data.data;
+    try {
+      const refreshed =
+        await fetchTransactions();
+
+      const createdTransaction =
+        refreshed.find(
+          (transaction) =>
+            transaction._id ===
+            newTransaction?._id
+        );
+
+      if (createdTransaction) {
+        newTransaction =
+          createdTransaction;
+      }
+    } catch (error) {
+      console.error(
+        "Failed to refresh transactions:",
+        error
+      );
+
+      setTransactions((current) => [
+        newTransaction,
+        ...current,
+      ]);
+    }
+
+    return newTransaction;
   };
 
   // =========================
@@ -341,12 +467,14 @@ export function TransactionProvider({ children }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: Number(transactionData.amount),
+          amount: Number(
+            transactionData.amount
+          ),
           type: transactionData.type,
           category: transactionData.category,
           note:
-            transactionData.description?.trim() ||
-            transactionData.note?.trim() ||
+            transactionData.note ||
+            transactionData.description ||
             "",
           date: transactionData.date,
         }),
@@ -362,8 +490,8 @@ export function TransactionProvider({ children }) {
       );
     }
 
-    setTransactions((currentTransactions) =>
-      currentTransactions.map((transaction) =>
+    setTransactions((current) =>
+      current.map((transaction) =>
         transaction._id === transactionId
           ? data.data
           : transaction
@@ -403,8 +531,8 @@ export function TransactionProvider({ children }) {
       );
     }
 
-    setTransactions((currentTransactions) =>
-      currentTransactions.filter(
+    setTransactions((current) =>
+      current.filter(
         (transaction) =>
           transaction._id !== transactionId
       )
@@ -414,89 +542,61 @@ export function TransactionProvider({ children }) {
   };
 
   // =========================
-  // Load Application Data
-  // =========================
-
-  useEffect(() => {
-    const loadData = async () => {
-      // Wait for AuthContext
-      if (authLoading) {
-        return;
-      }
-
-      // User is logged out
-      if (!user) {
-        setTransactions([]);
-        setCategories([]);
-        setLoading(false);
-        setError("");
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError("");
-
-        await Promise.all([
-          fetchTransactions(),
-          fetchCategories(),
-        ]);
-      } catch (error) {
-        console.error(
-          "Failed to load application data:",
-          error
-        );
-
-        setError(
-          error.message ||
-            "Failed to load application data."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [user, authLoading]);
-
-  // =========================
   // Transaction Summary
   // =========================
 
   const transactionSummary = useMemo(() => {
-    const totalIncome = transactions
-      .filter(
-        (transaction) =>
+    let totalIncome = 0;
+    let totalExpenses = 0;
+
+    transactions.forEach(
+      (transaction) => {
+        const amount = Number(
+          transaction.amount || 0
+        );
+
+        if (
           transaction.type === "income"
-      )
-      .reduce(
-        (total, transaction) =>
-          total +
-          Number(transaction.amount || 0),
-        0
-      );
+        ) {
+          totalIncome += amount;
+        }
 
-    const totalExpenses = transactions
-      .filter(
-        (transaction) =>
+        if (
           transaction.type === "expense"
-      )
-      .reduce(
-        (total, transaction) =>
-          total +
-          Number(transaction.amount || 0),
-        0
-      );
-
-    const currentBalance =
-      totalIncome - totalExpenses;
+        ) {
+          totalExpenses += amount;
+        }
+      }
+    );
 
     return {
       totalIncome,
       totalExpenses,
-      currentBalance,
+      currentBalance:
+        totalIncome -
+        totalExpenses,
     };
   }, [transactions]);
+
+  // =========================
+  // Load After Authentication
+  // =========================
+
+  useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
+    if (!user) {
+      setTransactions([]);
+      setCategories([]);
+      setLoading(false);
+      setError("");
+      return;
+    }
+
+    fetchAllData();
+  }, [user, authLoading]);
 
   // =========================
   // Context Value
@@ -511,20 +611,25 @@ export function TransactionProvider({ children }) {
 
     fetchTransactions,
     fetchCategories,
+    fetchAllData,
 
-    createCategory,
-    updateCategory,
-    deleteCategory,
-
+    // Transaction functions
     addTransaction,
     updateTransaction,
     deleteTransaction,
+
+    // Category functions
+    createCategory,
+    updateCategory,
+    deleteCategory,
 
     transactionSummary,
   };
 
   return (
-    <TransactionContext.Provider value={value}>
+    <TransactionContext.Provider
+      value={value}
+    >
       {children}
     </TransactionContext.Provider>
   );
@@ -535,7 +640,9 @@ export function TransactionProvider({ children }) {
 // =========================
 
 export function useTransactions() {
-  const context = useContext(TransactionContext);
+  const context = useContext(
+    TransactionContext
+  );
 
   if (!context) {
     throw new Error(

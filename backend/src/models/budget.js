@@ -34,7 +34,6 @@ const budgetSchema = new mongoose.Schema(
 
     year: {
       type: Number,
-      required: false,
     },
   },
   {
@@ -42,5 +41,8 @@ const budgetSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.models.Budget ||
+const Budget =
+  mongoose.models.Budget ||
   mongoose.model("Budget", budgetSchema);
+
+export default Budget;
