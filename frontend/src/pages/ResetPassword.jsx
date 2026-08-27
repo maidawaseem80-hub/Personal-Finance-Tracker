@@ -49,8 +49,8 @@ function ResetPassword() {
       setTimeout(() => {
         navigate("/login");
       }, 2000);
-    } catch (error) {
-      setError(error.message || "Something went wrong. Please try again.");
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
