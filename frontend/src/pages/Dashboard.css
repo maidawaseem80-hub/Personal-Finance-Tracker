@@ -56,10 +56,7 @@
   text-decoration: none;
   cursor: pointer;
   white-space: nowrap;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .dashboard-add-button:hover {
@@ -86,9 +83,7 @@
   border: 1px solid #e5e7eb;
   border-radius: 14px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .summary-card:hover {
@@ -175,9 +170,7 @@
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns:
-    minmax(0, 2fr)
-    minmax(300px, 1fr);
+  grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
   gap: 24px;
   margin-bottom: 24px;
 }
@@ -244,7 +237,7 @@
 }
 
 /* =========================
-   Expense Overview Chart
+   Weekly Overview Chart
 ========================= */
 
 .overview-chart {
@@ -288,11 +281,7 @@
   width: 70%;
   max-width: 42px;
   min-height: 6px;
-  background: linear-gradient(
-    180deg,
-    #3b82f6,
-    #2563eb
-  );
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
   border-radius: 6px 6px 0 0;
   transition: height 0.3s ease;
 }
@@ -390,19 +379,19 @@
 }
 
 /* ==================================================
-   SPENDING BY CATEGORY
+   SPENDING BY CATEGORY (all prefixed dashboard-*)
 ================================================== */
 
-.category-card {
+.dashboard-category-card {
   min-width: 0;
   overflow: hidden;
 }
 
-.category-card-header {
+.dashboard-category-card-header {
   margin-bottom: 18px;
 }
 
-.category-count {
+.dashboard-category-count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -418,22 +407,14 @@
   white-space: nowrap;
 }
 
-/* =========================
-   Category List
-========================= */
-
-.category-list {
+.dashboard-category-list {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 13px;
 }
 
-/* =========================
-   Individual Category
-========================= */
-
-.category-item {
+.dashboard-category-item {
   width: 100%;
   min-width: 0;
   padding: 14px 15px;
@@ -441,24 +422,16 @@
   border-radius: 11px;
   background: #ffffff;
   box-sizing: border-box;
-  transition:
-    border-color 0.18s ease,
-    background 0.18s ease,
-    box-shadow 0.18s ease;
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
 }
 
-.category-item:hover {
+.dashboard-category-item:hover {
   border-color: #dfe5ec;
   background: #fcfdff;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.035);
 }
 
-/* =========================
-   Category Top Row
-   Name                 Amount
-========================= */
-
-.category-top {
+.dashboard-category-top {
   width: 100%;
   min-width: 0;
   display: flex;
@@ -468,7 +441,7 @@
   margin-bottom: 10px;
 }
 
-.category-name-wrapper {
+.dashboard-category-name-wrapper {
   min-width: 0;
   flex: 1;
   display: flex;
@@ -476,14 +449,14 @@
   gap: 9px;
 }
 
-.category-dot {
+.dashboard-category-dot {
   width: 8px;
   height: 8px;
   flex-shrink: 0;
   border-radius: 50%;
 }
 
-.category-name {
+.dashboard-category-name {
   min-width: 0;
   overflow: hidden;
   color: #1f2937;
@@ -494,7 +467,7 @@
   white-space: nowrap;
 }
 
-.category-amount {
+.dashboard-category-amount {
   flex-shrink: 0;
   color: #111827;
   font-size: 14px;
@@ -503,11 +476,7 @@
   white-space: nowrap;
 }
 
-/* =========================
-   Progress Row
-========================= */
-
-.category-progress-row {
+.dashboard-category-progress-row {
   width: 100%;
   min-width: 0;
   display: flex;
@@ -515,11 +484,7 @@
   gap: 9px;
 }
 
-/* =========================
-   Progress Bar
-========================= */
-
-.category-progress {
+.dashboard-category-progress {
   height: 7px;
   min-width: 0;
   flex: 1;
@@ -528,18 +493,14 @@
   border-radius: 999px;
 }
 
-.category-progress-fill {
+.dashboard-category-progress-fill {
   height: 100%;
   min-width: 5px;
   border-radius: 999px;
   transition: width 0.35s ease;
 }
 
-/* =========================
-   Percentage
-========================= */
-
-.category-percentage {
+.dashboard-category-percentage {
   flex-shrink: 0;
   min-width: 76px;
   font-size: 10px;
@@ -549,16 +510,12 @@
   white-space: nowrap;
 }
 
-.category-percentage span {
+.dashboard-category-percentage span {
   color: #9ca3af;
   font-weight: 500;
 }
 
-/* =========================
-   Total Expenses
-========================= */
-
-.category-total {
+.dashboard-category-total {
   width: 100%;
   min-width: 0;
   display: flex;
@@ -571,26 +528,26 @@
   box-sizing: border-box;
 }
 
-.category-total > div {
+.dashboard-category-total > div {
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
 
-.category-total span {
+.dashboard-category-total span {
   color: #374151;
   font-size: 13px;
   font-weight: 700;
 }
 
-.category-total small {
+.dashboard-category-total small {
   color: #9ca3af;
   font-size: 10px;
   font-weight: 500;
 }
 
-.category-total strong {
+.dashboard-category-total strong {
   flex-shrink: 0;
   color: #111827;
   font-size: 15px;
@@ -669,12 +626,7 @@
 .dashboard-transaction-row {
   min-width: 650px;
   display: grid;
-  grid-template-columns:
-    90px
-    minmax(180px, 1.5fr)
-    minmax(110px, 1fr)
-    90px
-    minmax(150px, 1fr);
+  grid-template-columns: 90px minmax(180px, 1.5fr) minmax(110px, 1fr) 90px minmax(150px, 1fr);
   gap: 16px;
   align-items: center;
   padding: 14px 6px;
@@ -684,9 +636,7 @@
   font-size: 14px;
 }
 
-.dashboard-transaction-row:not(
-    .dashboard-transaction-heading
-  ):hover {
+.dashboard-transaction-row:not(.dashboard-transaction-heading):hover {
   background: #f9fafb;
 }
 
@@ -748,10 +698,6 @@
   color: #991b1b;
 }
 
-/* =========================
-   Transaction Amount
-========================= */
-
 .dashboard-transaction-amount {
   display: flex;
   align-items: center;
@@ -780,10 +726,6 @@
   color: #dc2626;
 }
 
-/* =========================
-   Empty Transactions
-========================= */
-
 .dashboard-empty-transactions {
   padding: 42px 20px;
   text-align: center;
@@ -807,10 +749,7 @@
 
 @media (max-width: 1000px) {
   .summary-grid {
-    grid-template-columns: repeat(
-      2,
-      minmax(0, 1fr)
-    );
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .summary-card:last-child {
@@ -896,21 +835,19 @@
     gap: 10px;
   }
 
-  /* Category */
-
-  .category-card-header {
+  .dashboard-category-card-header {
     gap: 10px;
   }
 
-  .category-item {
+  .dashboard-category-item {
     padding: 14px;
   }
 
-  .category-top {
+  .dashboard-category-top {
     gap: 10px;
   }
 
-  .category-progress-row {
+  .dashboard-category-progress-row {
     gap: 8px;
   }
 }
@@ -966,51 +903,49 @@
     font-size: 9px;
   }
 
-  /* Category */
-
-  .category-count {
+  .dashboard-category-count {
     display: none;
   }
 
-  .category-list {
+  .dashboard-category-list {
     gap: 10px;
   }
 
-  .category-item {
+  .dashboard-category-item {
     padding: 13px;
   }
 
-  .category-name {
+  .dashboard-category-name {
     font-size: 13px;
   }
 
-  .category-amount {
+  .dashboard-category-amount {
     font-size: 12px;
   }
 
-  .category-progress {
+  .dashboard-category-progress {
     height: 6px;
   }
 
-  .category-percentage {
+  .dashboard-category-percentage {
     min-width: 70px;
     font-size: 9px;
   }
 
-  .category-percentage span {
+  .dashboard-category-percentage span {
     font-size: 9px;
   }
 
-  .category-total {
+  .dashboard-category-total {
     margin-top: 15px;
     padding-top: 14px;
   }
 
-  .category-total span {
+  .dashboard-category-total span {
     font-size: 12px;
   }
 
-  .category-total strong {
+  .dashboard-category-total strong {
     font-size: 14px;
   }
 

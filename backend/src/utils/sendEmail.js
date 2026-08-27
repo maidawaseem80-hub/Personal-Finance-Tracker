@@ -12,14 +12,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-/**
- * Send an email.
- * @param {Object} options
- * @param {string} options.to - recipient email address
- * @param {string} options.subject - email subject
- * @param {string} options.html - HTML body
- * @param {string} [options.text] - plain text fallback body
- */
 const sendEmail = async ({ to, subject, html, text }) => {
   await transporter.sendMail({
     from: process.env.EMAIL_FROM || '"Your App" <no-reply@yourapp.com>',
