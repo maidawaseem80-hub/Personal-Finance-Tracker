@@ -37,8 +37,11 @@ export function AuthProvider({ children }) {
 
         setUser(data.user || data);
       } catch (error) {
+        console.error("Failed to restore session:", error);
+
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+
         setUser(null);
       } finally {
         setLoading(false);
@@ -50,13 +53,18 @@ export function AuthProvider({ children }) {
 
   const login = (token, userData) => {
     localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem(
+      "user",
+      JSON.stringify(userData)
+    );
+
     setUser(userData);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+
     setUser(null);
   };
 

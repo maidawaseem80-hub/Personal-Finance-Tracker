@@ -1,7 +1,14 @@
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import "./Budgets.css";
+
 import { useTransactions } from "../context/TransactionContext";
 import { useBudgets } from "../context/BudgetContext";
+import { useAlerts } from "../context/AlertContext";
 
 function Budgets() {
   const {
@@ -19,12 +26,17 @@ function Budgets() {
     deleteBudget,
   } = useBudgets();
 
+  const { checkBudgetAlert } = useAlerts();
+
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
   const [showForm, setShowForm] = useState(false);
-  const [editingBudget, setEditingBudget] = useState(null);
-  const [budgetToDelete, setBudgetToDelete] = useState(null);
+  const [editingBudget, setEditingBudget] =
+    useState(null);
+
+  const [budgetToDelete, setBudgetToDelete] =
+    useState(null);
 
   const [formData, setFormData] = useState({
     category: "",
@@ -32,57 +44,190 @@ function Budgets() {
     period: "monthly",
   });
 
-  // The error shown on the page: either the context's fetch
-  // error, or a local form/action error, whichever is set.
   const error = formError || contextError;
+
+  // =========================
+  // Date Helpers
+  // =========================
+
+  const getStartOfWeek = () => {
+    const now = new Date();
+
+    const start = new Date(now);
+    const day = start.getDay();
+
+    start.setDate(
+      start.getDate() - day
+    );
+
+    start.setHours(0, 0, 0, 0);
+
+    return start;
+  };
+
+  const getStartOfMonth = () => {
+    const now = new Date();
+
+    return new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1
+    );
+  };
+
+  const getStartOfYear = () => {
+    const now = new Date();
+
+    return new Date(
+      now.getFullYear(),
+      0,
+      1
+    );
+  };
+
+  const getBudgetStartDate = (period) => {
+    if (period === "weekly") {
+      return getStartOfWeek();
+    }
+
+    if (period === "yearly") {
+      return getStartOfYear();
+    }
+
+    return getStartOfMonth();
+  };
+
+  // =========================
+  // Check Budget Alerts
+  // =========================
+
+  useEffect(() => {
+    if (!budgets.length) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const checkAlerts = async () => {
+      for (const budget of budgets) {
+        if (cancelled) {
+          return;
+        }
+
+        if (!budget?._id) {
+          continue;
+        }
+
+        await checkBudgetAlert(
+          budget._id
+        );
+      }
+    };
+
+    checkAlerts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [budgets]);
 
   // =========================
   // Currency
   // =========================
 
   const formatCurrency = (amount) => {
-    return `Rs. ${Number(amount || 0).toLocaleString()}`;
+    return `Rs. ${Number(
+      amount || 0
+    ).toLocaleString()}`;
   };
 
   // =========================
-  // Calculate Spent
+  // Get Transaction Category
+  // =========================
+
+  const getTransactionCategoryId = (
+    transaction
+  ) => {
+    if (!transaction.category) {
+      return null;
+    }
+
+    if (
+      typeof transaction.category ===
+      "object"
+    ) {
+      return (
+        transaction.category?._id ||
+        null
+      );
+    }
+
+    return transaction.category;
+  };
+
+  // =========================
+  // Calculate Budget Spent
   // =========================
 
   const getBudgetSpent = (budget) => {
-    if (!budget.category) {
-      return transactions
-        .filter(
-          (transaction) =>
-            transaction.type === "expense"
-        )
-        .reduce(
-          (total, transaction) =>
-            total + Number(transaction.amount || 0),
-          0
-        );
-    }
+    const startDate =
+      getBudgetStartDate(
+        budget.period
+      );
 
     const categoryId =
-      typeof budget.category === "object"
-        ? budget.category._id
-        : budget.category;
+      budget.category &&
+      (typeof budget.category ===
+      "object"
+        ? budget.category?._id
+        : budget.category);
 
     return transactions
       .filter((transaction) => {
-        if (transaction.type !== "expense") {
+        // Only expenses count.
+        if (
+          transaction.type !==
+          "expense"
+        ) {
           return false;
         }
 
-        const transactionCategory =
-          typeof transaction.category === "object"
-            ? transaction.category?._id
-            : transaction.category;
+        // Ignore transactions outside
+        // the current budget period.
+        if (!transaction.date) {
+          return false;
+        }
 
-        return transactionCategory === categoryId;
+        const transactionDate =
+          new Date(
+            transaction.date
+          );
+
+        if (
+          transactionDate <
+          startDate
+        ) {
+          return false;
+        }
+
+        // Category-specific budget.
+        if (categoryId) {
+          return (
+            getTransactionCategoryId(
+              transaction
+            ) === categoryId
+          );
+        }
+
+        // No category means all expenses.
+        return true;
       })
       .reduce(
         (total, transaction) =>
-          total + Number(transaction.amount || 0),
+          total +
+          Number(
+            transaction.amount || 0
+          ),
         0
       );
   };
@@ -92,32 +237,45 @@ function Budgets() {
   // =========================
 
   const budgetSummary = useMemo(() => {
-    const totalBudget = budgets.reduce(
-      (total, item) =>
-        total + Number(item.amount || 0),
-      0
-    );
+    const totalBudget =
+      budgets.reduce(
+        (total, item) =>
+          total +
+          Number(
+            item.amount || 0
+          ),
+        0
+      );
 
-    const totalSpent = budgets.reduce(
-      (total, item) =>
-        total + getBudgetSpent(item),
-      0
-    );
+    const totalSpent =
+      budgets.reduce(
+        (total, item) =>
+          total +
+          getBudgetSpent(item),
+        0
+      );
 
-    const remaining = totalBudget - totalSpent;
+    const remaining =
+      totalBudget - totalSpent;
 
     return {
       totalBudget,
       totalSpent,
       remaining,
     };
-  }, [budgets, transactions]);
+  }, [
+    budgets,
+    transactions,
+  ]);
 
   // =========================
   // Percentage
   // =========================
 
-  const getPercentage = (spent, budget) => {
+  const getPercentage = (
+    spent,
+    budget
+  ) => {
     if (!budget) {
       return 0;
     }
@@ -132,12 +290,22 @@ function Budgets() {
   // Status
   // =========================
 
-  const getBudgetStatus = (spent, budget) => {
+  const getBudgetStatus = (
+    spent,
+    budget
+  ) => {
+    if (!budget) {
+      return "safe";
+    }
+
     if (spent > budget) {
       return "over";
     }
 
-    if (spent / budget >= 0.8) {
+    if (
+      spent / budget >=
+      0.8
+    ) {
       return "warning";
     }
 
@@ -148,13 +316,20 @@ function Budgets() {
   // Form
   // =========================
 
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
+  const handleInputChange = (
+    event
+  ) => {
+    const {
+      name,
+      value,
+    } = event.target;
 
-    setFormData((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
+    setFormData(
+      (previous) => ({
+        ...previous,
+        [name]: value,
+      })
+    );
   };
 
   const resetForm = () => {
@@ -172,18 +347,27 @@ function Budgets() {
     setShowForm(true);
   };
 
-  const handleOpenEditForm = (budget) => {
+  const handleOpenEditForm = (
+    budget
+  ) => {
     setEditingBudget(budget);
 
     const categoryId =
-      typeof budget.category === "object"
-        ? budget.category?._id || ""
-        : budget.category || "";
+      typeof budget.category ===
+      "object"
+        ? budget.category?._id ||
+          ""
+        : budget.category ||
+          "";
 
     setFormData({
       category: categoryId,
-      amount: String(budget.amount || ""),
-      period: budget.period || "monthly",
+      amount: String(
+        budget.amount || ""
+      ),
+      period:
+        budget.period ||
+        "monthly",
     });
 
     setFormError("");
@@ -205,12 +389,19 @@ function Budgets() {
   // Save Budget
   // =========================
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (
+    event
+  ) => {
     event.preventDefault();
 
-    const amount = Number(formData.amount);
+    const amount = Number(
+      formData.amount
+    );
 
-    if (!amount || amount <= 0) {
+    if (
+      !amount ||
+      amount <= 0
+    ) {
       setFormError(
         "Budget amount must be greater than 0."
       );
@@ -218,7 +409,9 @@ function Budgets() {
     }
 
     if (!formData.period) {
-      setFormError("Please select a budget period.");
+      setFormError(
+        "Please select a budget period."
+      );
       return;
     }
 
@@ -228,19 +421,32 @@ function Budgets() {
 
       const budgetData = {
         amount,
-        period: formData.period,
-        category: formData.category || null,
+        period:
+          formData.period,
+        category:
+          formData.category ||
+          null,
       };
 
       if (editingBudget) {
-        await updateBudget(editingBudget._id, budgetData);
+        await updateBudget(
+          editingBudget._id,
+          budgetData
+        );
       } else {
-        await createBudget(budgetData);
+        await createBudget(
+          budgetData
+        );
       }
 
-      handleCloseForm();
+      setShowForm(false);
+      setEditingBudget(null);
+      resetForm();
     } catch (error) {
-      console.error("Failed to save budget:", error);
+      console.error(
+        "Failed to save budget:",
+        error
+      );
 
       setFormError(
         error.message ||
@@ -255,7 +461,9 @@ function Budgets() {
   // Delete
   // =========================
 
-  const handleDeleteClick = (budget) => {
+  const handleDeleteClick = (
+    budget
+  ) => {
     setBudgetToDelete(budget);
     setFormError("");
   };
@@ -264,77 +472,101 @@ function Budgets() {
     setBudgetToDelete(null);
   };
 
-  const handleConfirmDelete = async () => {
-    if (!budgetToDelete) {
-      return;
-    }
+  const handleConfirmDelete =
+    async () => {
+      if (!budgetToDelete) {
+        return;
+      }
 
-    try {
-      setSaving(true);
-      setFormError("");
+      try {
+        setSaving(true);
+        setFormError("");
 
-      await deleteBudget(budgetToDelete._id);
+        await deleteBudget(
+          budgetToDelete._id
+        );
 
-      setBudgetToDelete(null);
-    } catch (error) {
-      console.error(
-        "Failed to delete budget:",
-        error
-      );
+        setBudgetToDelete(null);
+      } catch (error) {
+        console.error(
+          "Failed to delete budget:",
+          error
+        );
 
-      setFormError(
-        error.message ||
-          "Failed to delete budget."
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
+        setFormError(
+          error.message ||
+            "Failed to delete budget."
+        );
+      } finally {
+        setSaving(false);
+      }
+    };
 
   // =========================
   // Category Name
   // =========================
 
-  const getCategoryName = (budget) => {
+  const getCategoryName = (
+    budget
+  ) => {
     if (!budget.category) {
       return "All Expenses";
     }
 
-    if (typeof budget.category === "object") {
+    if (
+      typeof budget.category ===
+      "object"
+    ) {
       return (
         budget.category.name ||
         "Unknown Category"
       );
     }
 
-    const category = categories.find(
-      (item) => item._id === budget.category
-    );
+    const category =
+      categories.find(
+        (item) =>
+          item._id ===
+          budget.category
+      );
 
-    return category?.name || "Unknown Category";
+    return (
+      category?.name ||
+      "Unknown Category"
+    );
   };
 
   // =========================
   // Loading
   // =========================
 
-  if (loading || transactionLoading) {
+  if (
+    loading ||
+    transactionLoading
+  ) {
     return (
       <div className="budgets-page">
         <div className="budgets-header">
           <div>
             <h1>Budgets</h1>
+
             <p>
-              Create and manage your spending budgets.
+              Create and manage
+              your spending
+              budgets.
             </p>
           </div>
         </div>
 
         <div className="no-budgets">
-          <h2>Loading Budgets...</h2>
+          <h2>
+            Loading Budgets...
+          </h2>
+
           <p>
-            Please wait while your budgets are being
-            loaded.
+            Please wait while
+            your budgets are
+            being loaded.
           </p>
         </div>
       </div>
@@ -354,14 +586,18 @@ function Budgets() {
           <h1>Budgets</h1>
 
           <p>
-            Create and manage your spending budgets.
+            Create and manage
+            your spending
+            budgets.
           </p>
         </div>
 
         <button
           type="button"
           className="add-budget-button"
-          onClick={handleOpenAddForm}
+          onClick={
+            handleOpenAddForm
+          }
         >
           + Add Budget
         </button>
@@ -369,21 +605,28 @@ function Budgets() {
 
       {/* Error */}
 
-      {error && !showForm && !budgetToDelete && (
-        <div
-          style={{
-            marginBottom: "20px",
-            padding: "12px 16px",
-            borderRadius: "8px",
-            background: "#fee2e2",
-            color: "#b91c1c",
-            fontSize: "14px",
-            fontWeight: "600",
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {error &&
+        !showForm &&
+        !budgetToDelete && (
+          <div
+            style={{
+              marginBottom: "20px",
+              padding:
+                "12px 16px",
+              borderRadius: "8px",
+              background:
+                "#fee2e2",
+              color:
+                "#b91c1c",
+              fontSize:
+                "14px",
+              fontWeight:
+                "600",
+            }}
+          >
+            {error}
+          </div>
+        )}
 
       {/* Summary */}
 
@@ -394,7 +637,9 @@ function Budgets() {
           </div>
 
           <div>
-            <span>Total Budget</span>
+            <span>
+              Total Budget
+            </span>
 
             <h2>
               {formatCurrency(
@@ -410,7 +655,9 @@ function Budgets() {
           </div>
 
           <div>
-            <span>Total Spent</span>
+            <span>
+              Total Spent
+            </span>
 
             <h2>
               {formatCurrency(
@@ -426,11 +673,14 @@ function Budgets() {
           </div>
 
           <div>
-            <span>Remaining</span>
+            <span>
+              Remaining
+            </span>
 
             <h2
               className={
-                budgetSummary.remaining >= 0
+                budgetSummary.remaining >=
+                0
                   ? "budget-positive"
                   : "budget-negative"
               }
@@ -446,146 +696,190 @@ function Budgets() {
       {/* Budget Cards */}
 
       <div className="budgets-grid">
-        {budgets.length > 0 ? (
-          budgets.map((item) => {
-            const spent = getBudgetSpent(item);
+        {budgets.length >
+        0 ? (
+          budgets.map(
+            (item) => {
+              const spent =
+                getBudgetSpent(
+                  item
+                );
 
-            const budgetAmount =
-              Number(item.amount || 0);
+              const budgetAmount =
+                Number(
+                  item.amount ||
+                    0
+                );
 
-            const percentage = getPercentage(
-              spent,
-              budgetAmount
-            );
+              const percentage =
+                getPercentage(
+                  spent,
+                  budgetAmount
+                );
 
-            const status = getBudgetStatus(
-              spent,
-              budgetAmount
-            );
+              const status =
+                getBudgetStatus(
+                  spent,
+                  budgetAmount
+                );
 
-            const remaining =
-              budgetAmount - spent;
+              const remaining =
+                budgetAmount -
+                spent;
 
-            return (
-              <div
-                className="budget-card"
-                key={item._id}
-              >
-                <div className="budget-card-header">
-                  <div>
-                    <h2>
-                      {getCategoryName(item)}
-                    </h2>
+              return (
+                <div
+                  className="budget-card"
+                  key={
+                    item._id
+                  }
+                >
+                  <div className="budget-card-header">
+                    <div>
+                      <h2>
+                        {getCategoryName(
+                          item
+                        )}
+                      </h2>
 
-                    <p>
-                      {item.period
-                        ? `${
-                            item.period
-                              .charAt(0)
-                              .toUpperCase() +
-                            item.period.slice(1)
-                          } Budget`
-                        : "Budget"}
-                    </p>
+                      <p>
+                        {item.period
+                          ? `${
+                              item.period
+                                .charAt(
+                                  0
+                                )
+                                .toUpperCase() +
+                              item.period.slice(
+                                1
+                              )
+                            } Budget`
+                          : "Budget"}
+                      </p>
+                    </div>
+
+                    <div className="budget-card-actions">
+                      <button
+                        type="button"
+                        className="edit-budget-button"
+                        onClick={() =>
+                          handleOpenEditForm(
+                            item
+                          )
+                        }
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        className="delete-budget-button"
+                        onClick={() =>
+                          handleDeleteClick(
+                            item
+                          )
+                        }
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="budget-card-actions">
-                    <button
-                      type="button"
-                      className="edit-budget-button"
-                      onClick={() =>
-                        handleOpenEditForm(item)
-                      }
+                  <div className="budget-amount-row">
+                    <div>
+                      <span>
+                        Spent
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          spent
+                        )}
+                      </strong>
+                    </div>
+
+                    <div className="budget-total">
+                      <span>
+                        Budget
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          budgetAmount
+                        )}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="budget-progress-container">
+                    <div className="budget-progress-track">
+                      <div
+                        className={`budget-progress-fill ${status}`}
+                        style={{
+                          width: `${percentage}%`,
+                        }}
+                      ></div>
+                    </div>
+
+                    <span
+                      className={`budget-percentage ${status}`}
                     >
-                      Edit
-                    </button>
-
-                    <button
-                      type="button"
-                      className="delete-budget-button"
-                      onClick={() =>
-                        handleDeleteClick(item)
-                      }
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-
-                <div className="budget-amount-row">
-                  <div>
-                    <span>Spent</span>
-
-                    <strong>
-                      {formatCurrency(spent)}
-                    </strong>
-                  </div>
-
-                  <div className="budget-total">
-                    <span>Budget</span>
-
-                    <strong>
-                      {formatCurrency(
-                        budgetAmount
+                      {Math.round(
+                        percentage
                       )}
-                    </strong>
-                  </div>
-                </div>
-
-                <div className="budget-progress-container">
-                  <div className="budget-progress-track">
-                    <div
-                      className={`budget-progress-fill ${status}`}
-                      style={{
-                        width: `${percentage}%`,
-                      }}
-                    ></div>
+                      %
+                    </span>
                   </div>
 
-                  <span
-                    className={`budget-percentage ${status}`}
-                  >
-                    {Math.round(percentage)}%
-                  </span>
-                </div>
+                  <div className="budget-status-row">
+                    <span>
+                      {remaining >=
+                      0
+                        ? `${formatCurrency(
+                            remaining
+                          )} remaining`
+                        : `${formatCurrency(
+                            Math.abs(
+                              remaining
+                            )
+                          )} over budget`}
+                    </span>
 
-                <div className="budget-status-row">
-                  <span>
-                    {remaining >= 0
-                      ? `${formatCurrency(
-                          remaining
-                        )} remaining`
-                      : `${formatCurrency(
-                          Math.abs(remaining)
-                        )} over budget`}
-                  </span>
-
-                  <span
-                    className={`budget-status ${status}`}
-                  >
-                    {status === "over"
-                      ? "Over Budget"
-                      : status === "warning"
-                      ? "Near Limit"
-                      : "On Track"}
-                  </span>
+                    <span
+                      className={`budget-status ${status}`}
+                    >
+                      {status ===
+                      "over"
+                        ? "Over Budget"
+                        : status ===
+                          "warning"
+                        ? "Near Limit"
+                        : "On Track"}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            }
+          )
         ) : (
           <div className="no-budgets">
-            <h2>No Budgets Yet</h2>
+            <h2>
+              No Budgets Yet
+            </h2>
 
             <p>
-              Create your first budget to start
-              tracking your spending.
+              Create your first
+              budget to start
+              tracking your
+              spending.
             </p>
 
             <button
               type="button"
               className="add-budget-button"
-              onClick={handleOpenAddForm}
+              onClick={
+                handleOpenAddForm
+              }
             >
               + Create Budget
             </button>
@@ -621,7 +915,9 @@ function Budgets() {
               <button
                 type="button"
                 className="close-budget-modal-button"
-                onClick={handleCloseForm}
+                onClick={
+                  handleCloseForm
+                }
                 aria-label="Close modal"
               >
                 &times;
@@ -631,13 +927,20 @@ function Budgets() {
             {error && (
               <div
                 style={{
-                  margin: "0 24px",
-                  padding: "12px 14px",
-                  borderRadius: "8px",
-                  background: "#fee2e2",
-                  color: "#b91c1c",
-                  fontSize: "13px",
-                  fontWeight: "600",
+                  margin:
+                    "0 24px",
+                  padding:
+                    "12px 14px",
+                  borderRadius:
+                    "8px",
+                  background:
+                    "#fee2e2",
+                  color:
+                    "#b91c1c",
+                  fontSize:
+                    "13px",
+                  fontWeight:
+                    "600",
                 }}
               >
                 {error}
@@ -646,7 +949,9 @@ function Budgets() {
 
             <form
               className="budget-form"
-              onSubmit={handleSubmit}
+              onSubmit={
+                handleSubmit
+              }
             >
               {/* Category */}
 
@@ -658,18 +963,31 @@ function Budgets() {
                 <select
                   id="budget-category"
                   name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
+                  value={
+                    formData.category
+                  }
+                  onChange={
+                    handleInputChange
+                  }
                   style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    padding: "11px 12px",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "8px",
-                    background: "#ffffff",
-                    color: "#111827",
-                    fontSize: "14px",
-                    outline: "none",
+                    width:
+                      "100%",
+                    boxSizing:
+                      "border-box",
+                    padding:
+                      "11px 12px",
+                    border:
+                      "1px solid #d1d5db",
+                    borderRadius:
+                      "8px",
+                    background:
+                      "#ffffff",
+                    color:
+                      "#111827",
+                    fontSize:
+                      "14px",
+                    outline:
+                      "none",
                   }}
                 >
                   <option value="">
@@ -678,18 +996,30 @@ function Budgets() {
 
                   {categories
                     .filter(
-                      (category) =>
+                      (
+                        category
+                      ) =>
                         category.type ===
                         "expense"
                     )
-                    .map((category) => (
-                      <option
-                        key={category._id}
-                        value={category._id}
-                      >
-                        {category.name}
-                      </option>
-                    ))}
+                    .map(
+                      (
+                        category
+                      ) => (
+                        <option
+                          key={
+                            category._id
+                          }
+                          value={
+                            category._id
+                          }
+                        >
+                          {
+                            category.name
+                          }
+                        </option>
+                      )
+                    )}
                 </select>
               </div>
 
@@ -707,8 +1037,12 @@ function Budgets() {
                   min="1"
                   step="0.01"
                   placeholder="e.g. 30000"
-                  value={formData.amount}
-                  onChange={handleInputChange}
+                  value={
+                    formData.amount
+                  }
+                  onChange={
+                    handleInputChange
+                  }
                   required
                 />
               </div>
@@ -723,18 +1057,31 @@ function Budgets() {
                 <select
                   id="budget-period"
                   name="period"
-                  value={formData.period}
-                  onChange={handleInputChange}
+                  value={
+                    formData.period
+                  }
+                  onChange={
+                    handleInputChange
+                  }
                   style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    padding: "11px 12px",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "8px",
-                    background: "#ffffff",
-                    color: "#111827",
-                    fontSize: "14px",
-                    outline: "none",
+                    width:
+                      "100%",
+                    boxSizing:
+                      "border-box",
+                    padding:
+                      "11px 12px",
+                    border:
+                      "1px solid #d1d5db",
+                    borderRadius:
+                      "8px",
+                    background:
+                      "#ffffff",
+                    color:
+                      "#111827",
+                    fontSize:
+                      "14px",
+                    outline:
+                      "none",
                   }}
                 >
                   <option value="weekly">
@@ -755,8 +1102,12 @@ function Budgets() {
                 <button
                   type="button"
                   className="cancel-budget-button"
-                  onClick={handleCloseForm}
-                  disabled={saving}
+                  onClick={
+                    handleCloseForm
+                  }
+                  disabled={
+                    saving
+                  }
                 >
                   Cancel
                 </button>
@@ -764,7 +1115,9 @@ function Budgets() {
                 <button
                   type="submit"
                   className="save-budget-button"
-                  disabled={saving}
+                  disabled={
+                    saving
+                  }
                 >
                   {saving
                     ? "Saving..."
@@ -797,7 +1150,8 @@ function Budgets() {
             </h2>
 
             <p>
-              Are you sure you want to delete the{" "}
+              Are you sure you
+              want to delete the{" "}
               <strong>
                 {getCategoryName(
                   budgetToDelete
@@ -805,19 +1159,27 @@ function Budgets() {
               </strong>{" "}
               budget?
               <br />
-              This action cannot be undone.
+              This action cannot
+              be undone.
             </p>
 
             {error && (
               <div
                 style={{
-                  marginTop: "16px",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  background: "#fee2e2",
-                  color: "#b91c1c",
-                  fontSize: "13px",
-                  fontWeight: "600",
+                  marginTop:
+                    "16px",
+                  padding:
+                    "10px",
+                  borderRadius:
+                    "8px",
+                  background:
+                    "#fee2e2",
+                  color:
+                    "#b91c1c",
+                  fontSize:
+                    "13px",
+                  fontWeight:
+                    "600",
                 }}
               >
                 {error}
@@ -828,8 +1190,12 @@ function Budgets() {
               <button
                 type="button"
                 className="cancel-budget-button"
-                onClick={handleCancelDelete}
-                disabled={saving}
+                onClick={
+                  handleCancelDelete
+                }
+                disabled={
+                  saving
+                }
               >
                 Cancel
               </button>
@@ -837,8 +1203,12 @@ function Budgets() {
               <button
                 type="button"
                 className="confirm-delete-budget-button"
-                onClick={handleConfirmDelete}
-                disabled={saving}
+                onClick={
+                  handleConfirmDelete
+                }
+                disabled={
+                  saving
+                }
               >
                 {saving
                   ? "Deleting..."
