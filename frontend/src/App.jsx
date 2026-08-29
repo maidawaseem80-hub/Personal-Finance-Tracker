@@ -9,10 +9,8 @@ import Transactions from "./pages/Transactions";
 import Budgets from "./pages/Budgets";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
-
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
-
 import { TransactionProvider } from "./context/TransactionContext";
 import { BudgetProvider } from "./context/BudgetContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -30,10 +28,6 @@ function App() {
               <Route
                 path="/forgot-password"
                 element={<ForgotPassword />}
-              />
-              <Route
-                path="/reset-password"
-                element={<ResetPassword />}
               />
               <Route
                 path="/reset-password/:token"
