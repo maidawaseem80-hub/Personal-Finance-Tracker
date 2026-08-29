@@ -63,7 +63,8 @@ function App() {
                       path="/settings"
                       element={<Settings />}
                     />
-
+                    </Route>
+                </Route>
               </Routes>
             </BrowserRouter>
           </AlertProvider>
