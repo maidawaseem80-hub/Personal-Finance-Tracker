@@ -1,11 +1,22 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
 import { useAuth } from "../context/AuthContext";
+import { useAlerts } from "../context/AlertContext";
+
 import "./Navbar.css";
 
 function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
+
   const { logout } = useAuth();
+
+  const {
+    alerts,
+    unreadCount,
+    loading: alertsLoading,
+  } = useAlerts();
+
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -13,10 +24,29 @@ function Navbar() {
     navigate("/login");
   };
 
+  const formatNotificationDate = (date) => {
+    if (!date) {
+      return "";
+    }
+
+    const notificationDate = new Date(date);
+
+    if (Number.isNaN(notificationDate.getTime())) {
+      return "";
+    }
+
+    return notificationDate.toLocaleString([], {
+      day: "numeric",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <span className="navbar-logo">📊</span>
+        <span className="navbar-logo">💰</span>
         <span>Personal Finance Tracker</span>
       </div>
 
@@ -25,42 +55,87 @@ function Navbar() {
           <button
             className="notification-button"
             type="button"
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={() =>
+              setShowNotifications((previous) => !previous)
+            }
             aria-label="Notifications"
           >
-            <div className="ugh">🔔</div>
+            <span className="notification-icon">🔔</span>
+
+            {unreadCount > 0 && (
+              <span className="notification-badge">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </button>
 
           {showNotifications && (
             <div className="notification-dropdown">
               <div className="notification-header">
-                <h3>Notifications</h3>
-              </div>
-
-              <div className="notification-item">
-                <span>💰</span>
                 <div>
-                  <strong>Welcome!</strong>
-                  <p>Start tracking your finances today.</p>
+                  <h3>Notifications</h3>
+
+                  <p>
+                    {unreadCount > 0
+                      ? `${unreadCount} unread notification${
+                          unreadCount === 1 ? "" : "s"
+                        }`
+                      : "You're all caught up"}
+                  </p>
                 </div>
               </div>
 
-              <div className="notification-item">
-                <span>📊</span>
-                <div>
-                  <strong>Keep an eye on your budget</strong>
-                  <p>Review your spending regularly.</p>
+              {alertsLoading && (
+                <div className="notification-loading">
+                  Loading notifications...
                 </div>
-              </div>
+              )}
 
-              <div className="notification-empty">
-                You're all caught up!
-              </div>
+              {!alertsLoading && alerts.length > 0 && (
+                <div className="notification-list">
+                  {alerts.map((alert) => (
+                    <div
+                      className={`notification-item ${
+                        alert.isRead ? "read" : "unread"
+                      }`}
+                      key={alert._id}
+                    >
+                      <div className="notification-item-icon">
+                        ⚠️
+                      </div>
+
+                      <div className="notification-item-content">
+                        <strong>Budget Alert</strong>
+
+                        <p>{alert.message}</p>
+
+                        <span>
+                          {formatNotificationDate(
+                            alert.createdAt
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!alertsLoading && alerts.length === 0 && (
+                <div className="notification-empty">
+                  <div className="notification-empty-icon">
+                    🔔
+                  </div>
+
+                  <strong>No notifications</strong>
+
+                  <p>You're all caught up!</p>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        <Link to="/settings" className="profile-button" >
+        <Link to="/settings" className="profile-button">
           Profile
         </Link>
 

@@ -15,21 +15,16 @@ export function BudgetProvider({ children }) {
   const { user, loading: authLoading } = useAuth();
 
   const [budgets, setBudgets] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   // =========================
-  // Get Authentication Token
+  // Authentication
   // =========================
 
   const getToken = () => {
     return localStorage.getItem("token");
   };
-
-  // =========================
-  // Common Auth Headers
-  // =========================
 
   const getAuthHeaders = () => {
     const token = getToken();
@@ -48,29 +43,49 @@ export function BudgetProvider({ children }) {
 
     if (!token) {
       setBudgets([]);
-      return;
+      return [];
     }
 
     try {
-      const response = await fetch(`${API_URL}/budgets`, {
-        headers: getAuthHeaders(),
-      });
+      setError("");
+
+      const response = await fetch(
+        `${API_URL}/budgets`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(
-          data.message || "Failed to fetch budgets."
+          data.message ||
+            "Failed to fetch budgets."
         );
       }
 
-      setBudgets(data.data || []);
+      const budgetData = Array.isArray(data.data)
+        ? data.data
+        : [];
+
+      setBudgets(budgetData);
+
+      return budgetData;
     } catch (error) {
-      console.error("Failed to fetch budgets:", error);
+      console.error(
+        "Failed to fetch budgets:",
+        error
+      );
 
       setError(
-        error.message || "Failed to fetch budgets."
+        error.message ||
+          "Failed to fetch budgets."
       );
+
+      setBudgets([]);
+
+      throw error;
     }
   };
 
@@ -85,40 +100,50 @@ export function BudgetProvider({ children }) {
       throw new Error("You must be logged in.");
     }
 
-    const response = await fetch(`${API_URL}/budgets`, {
-      method: "POST",
-      headers: {
-        ...getAuthHeaders(),
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        amount: Number(budgetData.amount),
-        period: budgetData.period,
-        category: budgetData.category || null,
-      }),
-    });
+    const response = await fetch(
+      `${API_URL}/budgets`,
+      {
+        method: "POST",
+        headers: {
+          ...getAuthHeaders(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: Number(budgetData.amount),
+          period: budgetData.period,
+          category:
+            budgetData.category || null,
+        }),
+      }
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
       throw new Error(
-        data.message || "Failed to save budget."
+        data.message ||
+          "Failed to create budget."
       );
     }
 
+    const createdBudget = data.data;
+
     setBudgets((currentBudgets) => [
-      data.data,
+      createdBudget,
       ...currentBudgets,
     ]);
 
-    return data.data;
+    return createdBudget;
   };
 
   // =========================
   // Update Budget
   // =========================
 
-  const updateBudget = async (budgetId, budgetData) => {
+  const updateBudget = async (
+    budgetId,
+    budgetData
+  ) => {
     const token = getToken();
 
     if (!token) {
@@ -136,7 +161,8 @@ export function BudgetProvider({ children }) {
         body: JSON.stringify({
           amount: Number(budgetData.amount),
           period: budgetData.period,
-          category: budgetData.category || null,
+          category:
+            budgetData.category || null,
         }),
       }
     );
@@ -145,13 +171,16 @@ export function BudgetProvider({ children }) {
 
     if (!response.ok) {
       throw new Error(
-        data.message || "Failed to save budget."
+        data.message ||
+          "Failed to update budget."
       );
     }
 
     setBudgets((currentBudgets) =>
       currentBudgets.map((budget) =>
-        budget._id === budgetId ? data.data : budget
+        budget._id === budgetId
+          ? data.data
+          : budget
       )
     );
 
@@ -181,13 +210,15 @@ export function BudgetProvider({ children }) {
 
     if (!response.ok) {
       throw new Error(
-        data.message || "Failed to delete budget."
+        data.message ||
+          "Failed to delete budget."
       );
     }
 
     setBudgets((currentBudgets) =>
       currentBudgets.filter(
-        (budget) => budget._id !== budgetId
+        (budget) =>
+          budget._id !== budgetId
       )
     );
 
@@ -195,25 +226,22 @@ export function BudgetProvider({ children }) {
   };
 
   // =========================
-  // Load Data After Authentication
+  // Load After Authentication
   // =========================
 
   useEffect(() => {
-    const loadData = async () => {
-      // Wait until AuthContext finishes checking
-      // the existing session.
-      if (authLoading) {
-        return;
-      }
+    if (authLoading) {
+      return;
+    }
 
-      // User is not logged in.
-      if (!user) {
-        setBudgets([]);
-        setLoading(false);
-        setError("");
-        return;
-      }
+    if (!user) {
+      setBudgets([]);
+      setLoading(false);
+      setError("");
+      return;
+    }
 
+    const loadBudgets = async () => {
       try {
         setLoading(true);
         setError("");
@@ -224,16 +252,12 @@ export function BudgetProvider({ children }) {
           "Failed to load budgets:",
           error
         );
-
-        setError(
-          error.message || "Failed to load budgets."
-        );
       } finally {
         setLoading(false);
       }
     };
 
-    loadData();
+    loadBudgets();
   }, [user, authLoading]);
 
   // =========================

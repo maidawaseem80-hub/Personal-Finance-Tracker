@@ -14,50 +14,59 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import { TransactionProvider } from "./context/TransactionContext";
 import { BudgetProvider } from "./context/BudgetContext";
 import { AuthProvider } from "./context/AuthContext";
+import { AlertProvider } from "./context/AlertContext";
 
 function App() {
   return (
     <AuthProvider>
       <TransactionProvider>
         <BudgetProvider>
-          <BrowserRouter>
-            <Routes>
-              {/* Authentication */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route
-                path="/forgot-password"
-                element={<ForgotPassword />}
-              />
-              <Route
-                path="/reset-password/:token"
-                element={<ResetPassword />}
-              />
+          <AlertProvider>
+            <BrowserRouter>
+              <Routes>
+                {/* Authentication */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<SignUp />} />
 
-              {/* Dashboard Layout */}
-              <Route element={<ProtectedRoute />}>
-                <Route element={<DashboardLayout />}>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route
-                    path="/transactions"
-                    element={<Transactions />}
-                  />
-                  <Route
-                    path="/budgets"
-                    element={<Budgets />}
-                  />
-                  <Route
-                    path="/reports"
-                    element={<Reports />}
-                  />
-                  <Route
-                    path="/settings"
-                    element={<Settings />}
-                  />
-                </Route>
-              </Route>
-            </Routes>
-          </BrowserRouter>
+
+                <Route
+                  path="/forgot-password"
+                  element={<ForgotPassword />}
+                />
+
+                <Route
+                  path="/reset-password/:token"
+                  element={<ResetPassword />}
+                />
+
+                {/* Dashboard Layout */}
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<DashboardLayout />}>
+                    <Route path="/" element={<Dashboard />} />
+
+                    <Route
+                      path="/transactions"
+                      element={<Transactions />}
+                    />
+
+                    <Route
+                      path="/budgets"
+                      element={<Budgets />}
+                    />
+
+                    <Route
+                      path="/reports"
+                      element={<Reports />}
+                    />
+
+                    <Route
+                      path="/settings"
+                      element={<Settings />}
+                    />
+
+              </Routes>
+            </BrowserRouter>
+          </AlertProvider>
         </BudgetProvider>
       </TransactionProvider>
     </AuthProvider>
