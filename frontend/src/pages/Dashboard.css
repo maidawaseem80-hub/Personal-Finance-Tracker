@@ -21,7 +21,7 @@
 .dashboard-eyebrow {
   display: inline-block;
   margin-bottom: 4px;
-  color: #2563eb;
+  color: #1783c1;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -49,7 +49,7 @@
   padding: 11px 18px;
   border: none;
   border-radius: 8px;
-  background: #2563eb;
+  background: #1783c1;
   color: #ffffff;
   font-size: 14px;
   font-weight: 600;
@@ -60,7 +60,7 @@
 }
 
 .dashboard-add-button:hover {
-  background: #1d4ed8;
+  background: #0a3c6e;
   transform: translateY(-1px);
   box-shadow: 0 5px 12px rgba(37, 99, 235, 0.25);
 }
@@ -79,16 +79,16 @@
 .summary-card {
   min-width: 0;
   padding: 22px;
-  background: #ffffff;
+  background: #f2f1f1;
   border: 1px solid #e5e7eb;
   border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+  box-shadow: 0 11px 24px rgba(0, 0, 0, 0.08);
 }
 
 .summary-card-top {
@@ -179,10 +179,11 @@
   min-width: 0;
   padding: 24px;
   background: #ffffff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #b7c7e7;
   border-radius: 14px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
+
 
 /* =========================
    Card Header
@@ -281,7 +282,7 @@
   width: 70%;
   max-width: 42px;
   min-height: 6px;
-  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  background: linear-gradient(180deg, #1783c1, #1783c1);
   border-radius: 6px 6px 0 0;
   transition: height 0.3s ease;
 }

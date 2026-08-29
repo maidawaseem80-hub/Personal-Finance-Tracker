@@ -27,11 +27,11 @@
 }
 
 .sidebar-item:hover {
-  background-color: #f3f4f6;
+  background-color: #dbdbdd;
 }
 
 .sidebar-item.active {
-  background-color: #2563eb;
+  background-color: #1783c1;
   color: #ffffff;
 }
 
@@ -42,6 +42,6 @@
 }
 
 .sidebar-item.active {
-  background-color: #2563eb;
+  background-color: #1783c1;
   color: #ffffff;
 }

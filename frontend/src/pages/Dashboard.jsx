@@ -151,7 +151,6 @@ function Dashboard() {
     <div className="page-content dashboard-page">
       <div className="dashboard-header">
         <div>
-          <span className="dashboard-eyebrow">Personal Finance</span>
           <h1>Dashboard</h1>
           <p>Welcome back! Here's your financial overview.</p>
         </div>

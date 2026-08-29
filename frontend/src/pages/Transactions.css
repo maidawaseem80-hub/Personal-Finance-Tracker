@@ -24,7 +24,7 @@
   border: none;
   border-radius: 8px;
   padding: 11px 18px;
-  background: #2563eb;
+  background: #1783c1;
   color: #ffffff;
   font-size: 14px;
   font-weight: 600;
@@ -33,7 +33,7 @@
 }
 
 .add-transaction-button:hover {
-  background: #1d4ed8;
+  background: #0a3c6e;
   transform: translateY(-1px);
 }
 
@@ -55,8 +55,14 @@
   padding: 20px;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  background: #f2f1f1;
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.transaction-summary-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 11px 24px rgba(0, 0, 0, 0.08);
 }
 
 .transaction-summary-icon {
@@ -247,12 +253,12 @@
 }
 
 .save-transaction-button {
-  background: #2563eb;
+  background: #1783c1;
   color: #ffffff;
 }
 
 .save-transaction-button:hover {
-  background: #1d4ed8;
+  background: #0a3c6e;
 }
 
 .cancel-transaction-button {

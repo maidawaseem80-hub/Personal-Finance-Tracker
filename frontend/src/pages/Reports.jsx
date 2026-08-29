@@ -177,12 +177,7 @@ function Reports() {
 
       <div className="reports-header">
         <div>
-          <span className="reports-eyebrow">
-            Financial Insights
-          </span>
-
           <h1>Reports</h1>
-
           <p>
             Analyze your income, expenses, and spending patterns.
           </p>
