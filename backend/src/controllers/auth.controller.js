@@ -94,8 +94,8 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 
   await user.save();
 
-  const resetUrl = `${req.protocol}://${req.get('host')}/api/auth/reset-password/${resetToken}`;
-
+  // const resetUrl = `${req.protocol}://${req.get('host')}/api/auth/reset-password/${resetToken}`;
+const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
   try {
     await sendEmail({
       to: user.email,
@@ -108,17 +108,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
       `,
       text: `You requested a password reset. Visit this link within 15 minutes: ${resetUrl}`,
     });
-//   } catch (err) {
-//   console.error("========== EMAIL ERROR ==========");
-//   console.error(err);
 
-//   user.resetPasswordToken = undefined;
-//   user.resetPasswordExpires = undefined;
-//   await user.save();
-
-//   res.status(500);
-//   throw new Error("Email could not be sent");
-// }}
   }catch (err) {
   console.error("EMAIL ERROR:");
   console.error(err);
@@ -142,8 +132,44 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 // @desc    Reset password using token
 // @route   PUT /api/auth/reset-password/:token
 // @access  Public
+// export const resetPassword = asyncHandler(async (req, res) => {
+//   const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+//   const user = await User.findOne({
+//     resetPasswordToken: hashedToken,
+//     resetPasswordExpires: { $gt: Date.now() },
+//   });
+
+//   if (!user) {
+//     res.status(400);
+//     throw new Error('Invalid or expired reset token');
+//   }
+
+//   const salt = await bcrypt.genSalt(10);
+//   user.passwordHash = await bcrypt.hash(req.body.password, salt);
+//   user.resetPasswordToken = undefined;
+//   user.resetPasswordExpires = undefined;
+
+//   await user.save();
+
+//   res.status(200).json({
+//     success: true,
+//     message: 'Password reset successful',
+//     token: generateToken(user._id),
+//   });
+// });
 export const resetPassword = asyncHandler(async (req, res) => {
-  const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+  const { password } = req.body;
+
+  if (!password) {
+    res.status(400);
+    throw new Error("Password is required");
+  }
+
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
 
   const user = await User.findOne({
     resetPasswordToken: hashedToken,
@@ -152,11 +178,12 @@ export const resetPassword = asyncHandler(async (req, res) => {
 
   if (!user) {
     res.status(400);
-    throw new Error('Invalid or expired reset token');
+    throw new Error("Invalid or expired reset token");
   }
 
   const salt = await bcrypt.genSalt(10);
-  user.passwordHash = await bcrypt.hash(req.body.password, salt);
+
+  user.passwordHash = await bcrypt.hash(password, salt);
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
 
@@ -164,7 +191,6 @@ export const resetPassword = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Password reset successful',
-    token: generateToken(user._id),
+    message: "Password reset successfully",
   });
 });
