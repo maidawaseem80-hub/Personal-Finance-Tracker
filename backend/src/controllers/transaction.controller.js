@@ -48,6 +48,16 @@ const getPeriodStart = (period) => {
   );
 };
 
+const getCategoryName = async (budget) => {
+  if (!budget.category) {
+    return "Overall";
+  }
+
+  const category = await Category.findById(budget.category);
+
+  return category ? category.name : "Unknown";
+};
+
 // =========================
 // Check User Budget Alerts
 // =========================
@@ -111,6 +121,7 @@ const checkUserBudgetAlerts = async (userId) => {
       if (budgetAmount <= 0) {
         continue;
       }
+      const categoryName = await getCategoryName(budget);
 
       const percentUsed =
         (totalSpent / budgetAmount) *
@@ -207,10 +218,10 @@ const checkUserBudgetAlerts = async (userId) => {
 
         if (threshold === 100) {
           message =
-            `You have reached or exceeded your budget limit of Rs. ${budgetAmount.toLocaleString()}.`;
+            `You have reached or exceeded your ${categoryName} budget limit of Rs. ${budgetAmount.toLocaleString()}.`;
         } else {
           message =
-            `You have used ${percentUsed.toFixed(0)}% of your budget.`;
+            `You have used ${percentUsed.toFixed(0)}% of your ${categoryName} budget.`;
         }
 
         // =========================

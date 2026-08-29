@@ -371,74 +371,54 @@ export function TransactionProvider({ children }) {
   // Add Transaction
   // =========================
 
-  const addTransaction = async (
-    transactionData
-  ) => {
+    const addTransaction = async (transactionData) => {
     const token = getToken();
 
     if (!token) {
       throw new Error("You must be logged in.");
     }
 
-    const response = await fetch(
-      `${API_URL}/transactions`,
-      {
-        method: "POST",
-        headers: {
-          ...getAuthHeaders(),
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount: Number(
-            transactionData.amount
-          ),
-          type: transactionData.type,
-          category: transactionData.category,
-          note:
-            transactionData.note ||
-            transactionData.description ||
-            "",
-          date: transactionData.date,
-        }),
-      }
-    );
+    const response = await fetch(`${API_URL}/transactions`, {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: Number(transactionData.amount),
+        type: transactionData.type,
+        category: transactionData.category,
+        note: transactionData.note || transactionData.description || "",
+        date: transactionData.date,
+      }),
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Failed to add transaction."
-      );
+      throw new Error(data.message || "Failed to add transaction.");
     }
 
     let newTransaction = data.data;
 
     try {
-      const refreshed =
-        await fetchTransactions();
+      const refreshed = await fetchTransactions();
 
-      const createdTransaction =
-        refreshed.find(
-          (transaction) =>
-            transaction._id ===
-            newTransaction?._id
-        );
-
-      if (createdTransaction) {
-        newTransaction =
-          createdTransaction;
-      }
-    } catch (error) {
-      console.error(
-        "Failed to refresh transactions:",
-        error
+      const createdTransaction = refreshed.find(
+        (transaction) => transaction._id === newTransaction?._id
       );
 
-      setTransactions((current) => [
-        newTransaction,
-        ...current,
-      ]);
+      if (createdTransaction) {
+        newTransaction = createdTransaction;
+      }
+    } catch (error) {
+      console.error("Failed to refresh transactions:", error);
+
+      setTransactions((current) => [newTransaction, ...current]);
+    }
+
+    if (transactionData.type === "expense") {
+      window.dispatchEvent(new Event("alertsChanged"));
     }
 
     return newTransaction;
@@ -448,10 +428,7 @@ export function TransactionProvider({ children }) {
   // Update Transaction
   // =========================
 
-  const updateTransaction = async (
-    transactionId,
-    transactionData
-  ) => {
+    const updateTransaction = async (transactionId, transactionData) => {
     const token = getToken();
 
     if (!token) {
@@ -467,15 +444,10 @@ export function TransactionProvider({ children }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: Number(
-            transactionData.amount
-          ),
+          amount: Number(transactionData.amount),
           type: transactionData.type,
           category: transactionData.category,
-          note:
-            transactionData.note ||
-            transactionData.description ||
-            "",
+          note: transactionData.note || transactionData.description || "",
           date: transactionData.date,
         }),
       }
@@ -484,19 +456,16 @@ export function TransactionProvider({ children }) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Failed to update transaction."
-      );
+      throw new Error(data.message || "Failed to update transaction.");
     }
 
     setTransactions((current) =>
       current.map((transaction) =>
-        transaction._id === transactionId
-          ? data.data
-          : transaction
+        transaction._id === transactionId ? data.data : transaction
       )
     );
+
+    window.dispatchEvent(new Event("alertsChanged"));
 
     return data.data;
   };
@@ -505,9 +474,7 @@ export function TransactionProvider({ children }) {
   // Delete Transaction
   // =========================
 
-  const deleteTransaction = async (
-    transactionId
-  ) => {
+    const deleteTransaction = async (transactionId) => {
     const token = getToken();
 
     if (!token) {
@@ -525,58 +492,17 @@ export function TransactionProvider({ children }) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Failed to delete transaction."
-      );
+      throw new Error(data.message || "Failed to delete transaction.");
     }
 
     setTransactions((current) =>
-      current.filter(
-        (transaction) =>
-          transaction._id !== transactionId
-      )
+      current.filter((transaction) => transaction._id !== transactionId)
     );
+
+    window.dispatchEvent(new Event("alertsChanged"));
 
     return data;
   };
-
-  // =========================
-  // Transaction Summary
-  // =========================
-
-  const transactionSummary = useMemo(() => {
-    let totalIncome = 0;
-    let totalExpenses = 0;
-
-    transactions.forEach(
-      (transaction) => {
-        const amount = Number(
-          transaction.amount || 0
-        );
-
-        if (
-          transaction.type === "income"
-        ) {
-          totalIncome += amount;
-        }
-
-        if (
-          transaction.type === "expense"
-        ) {
-          totalExpenses += amount;
-        }
-      }
-    );
-
-    return {
-      totalIncome,
-      totalExpenses,
-      currentBalance:
-        totalIncome -
-        totalExpenses,
-    };
-  }, [transactions]);
 
   // =========================
   // Load After Authentication
@@ -597,6 +523,28 @@ export function TransactionProvider({ children }) {
 
     fetchAllData();
   }, [user, authLoading]);
+
+    // =========================
+  // Transaction Summary
+  // =========================
+
+  const transactionSummary = useMemo(() => {
+    const totalIncome = transactions
+      .filter((transaction) => transaction.type === "income")
+      .reduce((total, transaction) => total + Number(transaction.amount || 0), 0);
+
+    const totalExpenses = transactions
+      .filter((transaction) => transaction.type === "expense")
+      .reduce((total, transaction) => total + Number(transaction.amount || 0), 0);
+
+    const currentBalance = totalIncome - totalExpenses;
+
+    return {
+      totalIncome,
+      totalExpenses,
+      currentBalance,
+    };
+  }, [transactions]);
 
   // =========================
   // Context Value
@@ -622,7 +570,6 @@ export function TransactionProvider({ children }) {
     createCategory,
     updateCategory,
     deleteCategory,
-
     transactionSummary,
   };
 

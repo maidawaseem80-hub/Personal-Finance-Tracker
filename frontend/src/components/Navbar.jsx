@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
@@ -8,6 +8,7 @@ import "./Navbar.css";
 
 function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [shake, setShake] = useState(false);
 
   const { logout } = useAuth();
 
@@ -15,7 +16,10 @@ function Navbar() {
     alerts,
     unreadCount,
     loading: alertsLoading,
+    markAlertsAsRead,
   } = useAlerts();
+
+  const previousUnreadCount = useRef(unreadCount);
 
   const navigate = useNavigate();
 
@@ -43,23 +47,59 @@ function Navbar() {
     });
   };
 
+  useEffect(() => {
+    if (unreadCount > previousUnreadCount.current) {
+      setShake(true);
+
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 880;
+      gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.3);
+
+      const timeout = setTimeout(() => setShake(false), 600);
+
+      previousUnreadCount.current = unreadCount;
+
+      return () => clearTimeout(timeout);
+    }
+
+    previousUnreadCount.current = unreadCount;
+  }, [unreadCount]);
+
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <span className="navbar-logo">💰</span>
+        <span className="navbar-logo">📊</span>
         <span>Personal Finance Tracker</span>
       </div>
 
       <div className="navbar-actions">
         <div className="notification-wrapper">
-          <button
-            className="notification-button"
-            type="button"
-            onClick={() =>
-              setShowNotifications((previous) => !previous)
-            }
-            aria-label="Notifications"
-          >
+         <button
+   className={`notification-button${shake ? " shake" : ""}`}
+   type="button"
+   onClick={() => {
+    setShowNotifications((previous) => {
+      const next = !previous;
+
+      if (next && unreadCount > 0) {
+        markAlertsAsRead();
+      }
+
+      return next;
+    });
+  }}
+  aria-label="Notifications"
+>
             <span className="notification-icon">🔔</span>
 
             {unreadCount > 0 && (

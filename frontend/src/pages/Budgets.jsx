@@ -26,7 +26,6 @@ function Budgets() {
     deleteBudget,
   } = useBudgets();
 
-  const { checkBudgetAlert } = useAlerts();
 
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
@@ -96,41 +95,7 @@ function Budgets() {
 
     return getStartOfMonth();
   };
-
-  // =========================
-  // Check Budget Alerts
-  // =========================
-
-  useEffect(() => {
-    if (!budgets.length) {
-      return;
-    }
-
-    let cancelled = false;
-
-    const checkAlerts = async () => {
-      for (const budget of budgets) {
-        if (cancelled) {
-          return;
-        }
-
-        if (!budget?._id) {
-          continue;
-        }
-
-        await checkBudgetAlert(
-          budget._id
-        );
-      }
-    };
-
-    checkAlerts();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [budgets]);
-
+  
   // =========================
   // Currency
   // =========================

@@ -1,5 +1,6 @@
 import Budget from "../models/budget.js";
 import Category from "../models/category.js";
+import Alert from "../models/alert.js";
 
 const createBudget = async (req, res) => {
   try {
@@ -193,6 +194,8 @@ const deleteBudget = async (req, res) => {
         message: "Budget not found.",
       });
     }
+
+    await Alert.deleteMany({ budget: id });
 
     res.status(200).json({
       success: true,
