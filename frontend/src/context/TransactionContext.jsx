@@ -21,10 +21,6 @@ export function TransactionProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // =========================
-  // Authentication
-  // =========================
-
   const getToken = () => {
     return localStorage.getItem("token");
   };
@@ -36,10 +32,6 @@ export function TransactionProvider({ children }) {
       Authorization: `Bearer ${token}`,
     };
   };
-
-  // =========================
-  // Fetch Transactions
-  // =========================
 
   const fetchTransactions = async () => {
     const token = getToken();
@@ -89,10 +81,6 @@ export function TransactionProvider({ children }) {
     }
   };
 
-  // =========================
-  // Fetch Categories
-  // =========================
-
   const fetchCategories = async () => {
     const token = getToken();
 
@@ -141,10 +129,6 @@ export function TransactionProvider({ children }) {
     }
   };
 
-  // =========================
-  // Create Category
-  // =========================
-
   const createCategory = async (
     nameOrData,
     type
@@ -154,10 +138,6 @@ export function TransactionProvider({ children }) {
     if (!token) {
       throw new Error("You must be logged in.");
     }
-
-    // Supports both:
-    // createCategory("Salary", "income")
-    // createCategory({ name: "Salary", type: "income" })
 
     const name =
       typeof nameOrData === "object"
@@ -219,10 +199,6 @@ export function TransactionProvider({ children }) {
 
     return newCategory;
   };
-
-  // =========================
-  // Update Category
-  // =========================
 
   const updateCategory = async (
     categoryId,
@@ -290,10 +266,6 @@ export function TransactionProvider({ children }) {
     return updatedCategory;
   };
 
-  // =========================
-  // Delete Category
-  // =========================
-
   const deleteCategory = async (
     categoryId
   ) => {
@@ -330,10 +302,6 @@ export function TransactionProvider({ children }) {
     return data;
   };
 
-  // =========================
-  // Load All Data
-  // =========================
-
   const fetchAllData = async () => {
     const token = getToken();
 
@@ -366,10 +334,6 @@ export function TransactionProvider({ children }) {
       setLoading(false);
     }
   };
-
-  // =========================
-  // Add Transaction
-  // =========================
 
   const addTransaction = async (
     transactionData
@@ -444,10 +408,6 @@ export function TransactionProvider({ children }) {
     return newTransaction;
   };
 
-  // =========================
-  // Update Transaction
-  // =========================
-
   const updateTransaction = async (
     transactionId,
     transactionData
@@ -499,11 +459,7 @@ export function TransactionProvider({ children }) {
     );
 
     return data.data;
-  };
-
-  // =========================
-  // Delete Transaction
-  // =========================
+  } 
 
   const deleteTransaction = async (
     transactionId
@@ -541,9 +497,6 @@ export function TransactionProvider({ children }) {
     return data;
   };
 
-  // =========================
-  // Transaction Summary
-  // =========================
 
   const transactionSummary = useMemo(() => {
     let totalIncome = 0;
@@ -578,9 +531,6 @@ export function TransactionProvider({ children }) {
     };
   }, [transactions]);
 
-  // =========================
-  // Load After Authentication
-  // =========================
 
   useEffect(() => {
     if (authLoading) {
@@ -598,9 +548,6 @@ export function TransactionProvider({ children }) {
     fetchAllData();
   }, [user, authLoading]);
 
-  // =========================
-  // Context Value
-  // =========================
 
   const value = {
     transactions,
@@ -635,9 +582,6 @@ export function TransactionProvider({ children }) {
   );
 }
 
-// =========================
-// Custom Hook
-// =========================
 
 export function useTransactions() {
   const context = useContext(

@@ -268,6 +268,39 @@
   color: #9ca3af;
 }
 
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  padding-right: 44px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.15s ease;
+}
+
+.password-toggle:hover {
+  color: #0a3c6e;
+}
+
+.password-icon {
+  width: 20px;
+  height: 20px;
+}
+
 .signup-button {
   width: 100%;
   padding: 13px;
