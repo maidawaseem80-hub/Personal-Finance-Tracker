@@ -113,9 +113,17 @@
 }
 
 .settings-primary-button {
-  background: #2563eb;
+  background: #1783c1;
   color: #fff;
   align-self: flex-start;
+}
+
+.settings-primary-button:hover {
+  background: #0a3c6e;
+  transition: background 0.2s ease;
+  box-shadow: 0 5px 12px rgba(37, 99, 235, 0.25);
+  transform: translateY(-2px);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .settings-primary-button:disabled {
@@ -124,9 +132,17 @@
 }
 
 .settings-secondary-button {
-  background: #f3f4f6;
-  color: #111;
+  background: #1783c1;
+  color: #ffffff;
   border-color: #d0d0d0;
+}
+
+.settings-secondary-button:hover {
+  background: #0a3c6e;
+  transition: background 0.2s ease;
+  box-shadow: 0 5px 12px rgba(37, 99, 235, 0.25);
+  transform: translateY(-2px);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .settings-options {
