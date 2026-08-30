@@ -3,6 +3,8 @@ import Category from "../models/category.js";
 import Budget from "../models/budget.js";
 import Alert from "../models/alert.js";
 import asyncHandler from "../middleware/asyncHandler.js";
+import sendEmail from '../utils/sendEmail.js';
+import User from "../models/user.js";
 
 // =========================
 // Get Budget Period Start
@@ -228,7 +230,7 @@ const checkUserBudgetAlerts = async (userId) => {
         // Create Alert
         // =========================
 
-        const alert =
+                  const alert =
           await Alert.create({
             user: userId,
             budget: budget._id,
@@ -244,9 +246,25 @@ const checkUserBudgetAlerts = async (userId) => {
         console.log(
           `Alert ID: ${alert._id}`
         );
+
+        try {
+          const user = await User.findById(userId);
+
+          if (user) {
+            await sendEmail({
+              to: user.email,
+              subject: "Budget Alert",
+              html: `<p>Hi ${user.name || ""},</p><p>${message}</p>`,
+              text: message,
+            });
+          }
+        } catch (emailError) {
+          console.error("Alert email error:", emailError);
+        }
       }
     }
   } catch (error) {
+    
     /*
       Alert checking should never
       prevent transaction operations.

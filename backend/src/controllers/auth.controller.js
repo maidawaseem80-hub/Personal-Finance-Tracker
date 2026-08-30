@@ -22,6 +22,22 @@ export const registerUser = asyncHandler(async (req, res) => {
 
   const user = await User.create({ name, email, passwordHash });
 
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: 'Welcome to Personal Finance Tracker!',
+      html: `
+        <p>Hi ${user.name || ''},</p>
+        <p>Welcome to Personal Finance Tracker! Your account has been created successfully.</p>
+        <p>Start tracking your income, expenses, and budgets right away.</p>
+      `,
+      text: `Welcome to Personal Finance Tracker, ${user.name || ''}! Your account has been created successfully.`,
+    });
+  } catch (err) {
+    console.error("Welcome email error:", err);
+    // Don't block registration if the welcome email fails
+  }
+
   res.status(201).json({
     success: true,
     data: {
