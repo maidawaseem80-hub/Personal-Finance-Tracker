@@ -1,17 +1,17 @@
 import express from "express";
+import {
+  createBudget,
+  getBudgets,
+  updateBudget,
+  deleteBudget,
+} from "../controllers/budget.controller.js";
 import { protect } from "../middleware/auth.js";
-import { createBudget, getBudgets, updateBudget, deleteBudget } from "../controllers/budget.controller.js";
 
 const router = express.Router();
 
-router.use(protect);
-
-router.route("/")
-  .post(createBudget)
-  .get(getBudgets);
-
-router.route("/:id")
-  .put(updateBudget)
-  .delete(deleteBudget);
+router.post("/", protect, createBudget);
+router.get("/", protect, getBudgets);
+router.put("/:id", protect, updateBudget);
+router.delete("/:id", protect, deleteBudget);
 
 export default router;

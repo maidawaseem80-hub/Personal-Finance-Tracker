@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import User from '../models/user.js';
 import generateToken from '../utils/generateToken.js';
 import asyncHandler from '../middleware/asyncHandler.js';
+import sendEmail from '../utils/sendEmail.js';
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -71,7 +72,7 @@ export const getMe = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Forgot password - generate reset token
+// @desc    Forgot password - generate reset token and email it to the user
 // @route   POST /api/auth/forgot-password
 // @access  Public
 export const forgotPassword = asyncHandler(async (req, res) => {
@@ -79,7 +80,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({ email });
   if (!user) {
-    
+    // Same response whether or not the user exists, to avoid email enumeration
     return res.status(200).json({
       success: true,
       message: 'If that email exists, a reset link has been sent',
@@ -93,22 +94,82 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 
   await user.save();
 
-  // In production: email this link to the user instead of returning it
-  const resetUrl = `${req.protocol}://${req.get('host')}/api/auth/reset-password/${resetToken}`;
+  // const resetUrl = `${req.protocol}://${req.get('host')}/api/auth/reset-password/${resetToken}`;
+const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: 'Password Reset Request',
+      html: `
+        <p>Hi ${user.name || ''},</p>
+        <p>You requested a password reset. Click the link below to set a new password. This link expires in 15 minutes.</p>
+        <p><a href="${resetUrl}">${resetUrl}</a></p>
+        <p>If you didn't request this, you can safely ignore this email.</p>
+      `,
+      text: `You requested a password reset. Visit this link within 15 minutes: ${resetUrl}`,
+    });
 
+  }catch (err) {
+  console.error("EMAIL ERROR:");
+  console.error(err);
+
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
+
+  res.status(500).json({
+    success: false,
+    message: err.message,
+    error: err,
+  });
+};
   res.status(200).json({
     success: true,
     message: 'If that email exists, a reset link has been sent',
-    // Remove resetUrl from response in production — only for dev/testing
-    resetUrl,
   });
 });
 
 // @desc    Reset password using token
 // @route   PUT /api/auth/reset-password/:token
 // @access  Public
+// export const resetPassword = asyncHandler(async (req, res) => {
+//   const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+//   const user = await User.findOne({
+//     resetPasswordToken: hashedToken,
+//     resetPasswordExpires: { $gt: Date.now() },
+//   });
+
+//   if (!user) {
+//     res.status(400);
+//     throw new Error('Invalid or expired reset token');
+//   }
+
+//   const salt = await bcrypt.genSalt(10);
+//   user.passwordHash = await bcrypt.hash(req.body.password, salt);
+//   user.resetPasswordToken = undefined;
+//   user.resetPasswordExpires = undefined;
+
+//   await user.save();
+
+//   res.status(200).json({
+//     success: true,
+//     message: 'Password reset successful',
+//     token: generateToken(user._id),
+//   });
+// });
 export const resetPassword = asyncHandler(async (req, res) => {
-  const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+  const { password } = req.body;
+
+  if (!password) {
+    res.status(400);
+    throw new Error("Password is required");
+  }
+
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
 
   const user = await User.findOne({
     resetPasswordToken: hashedToken,
@@ -117,11 +178,12 @@ export const resetPassword = asyncHandler(async (req, res) => {
 
   if (!user) {
     res.status(400);
-    throw new Error('Invalid or expired reset token');
+    throw new Error("Invalid or expired reset token");
   }
 
   const salt = await bcrypt.genSalt(10);
-  user.passwordHash = await bcrypt.hash(req.body.password, salt);
+
+  user.passwordHash = await bcrypt.hash(password, salt);
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
 
@@ -129,7 +191,6 @@ export const resetPassword = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Password reset successful',
-    token: generateToken(user._id),
+    message: "Password reset successfully",
   });
 });

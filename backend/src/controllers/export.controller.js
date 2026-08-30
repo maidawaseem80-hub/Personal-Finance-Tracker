@@ -1,14 +1,27 @@
 import { Parser } from "json2csv";
+import jwt from "jsonwebtoken";
+import PDFDocument from "pdfkit";
 import Transaction from "../models/transaction.js";
 import Category from "../models/category.js";
-import PDFDocument from "pdfkit";
+
+const getUserFromToken = (token) => {
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  return decoded.id;
+};
 
 const exportTransactionsCSV = async (req, res) => {
   try {
-    const { user } = req.query;
+    const { token } = req.query;
 
-    if (!user) {
-      return res.status(400).json({ message: "user is required" });
+    if (!token) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+
+    let user;
+    try {
+      user = getUserFromToken(token);
+    } catch (error) {
+      return res.status(401).json({ message: "Invalid token" });
     }
 
     const transactions = await Transaction.find({ user }).sort({ date: -1 });
@@ -26,7 +39,13 @@ const exportTransactionsCSV = async (req, res) => {
       })
     );
 
-    const fields = ["date", "type", "category", "amount", "note"];
+    const fields = [
+  { label: "Date", value: "date" },
+  { label: "Type", value: "type" },
+  { label: "Category", value: "category" },
+  { label: "Amount (Rs.)", value: "amount" },
+  { label: "Note", value: "note" },
+];
     const parser = new Parser({ fields });
     const csv = parser.parse(rows);
 
@@ -40,10 +59,17 @@ const exportTransactionsCSV = async (req, res) => {
 
 const exportTransactionsPDF = async (req, res) => {
   try {
-    const { user } = req.query;
+    const { token } = req.query;
 
-    if (!user) {
-      return res.status(400).json({ message: "user is required" });
+    if (!token) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+
+    let user;
+    try {
+      user = getUserFromToken(token);
+    } catch (error) {
+      return res.status(401).json({ message: "Invalid token" });
     }
 
     const transactions = await Transaction.find({ user }).sort({ date: -1 });
@@ -72,11 +98,15 @@ const exportTransactionsPDF = async (req, res) => {
 
     rows.forEach((row) => {
       doc
-        .fontSize(11)
-        .text(
-          `${row.date}  |  ${row.type}  |  ${row.category}  |  Rs. ${row.amount}  |  ${row.note}`
-        );
-      doc.moveDown(0.3);
+  .fontSize(11)
+  .text(`Date: ${row.date}    Type: ${row.type}    Category: ${row.category}    Amount: Rs. ${row.amount}`);
+
+    if (row.note) {
+    doc.fontSize(9).fillColor("gray").text(`Note: ${row.note}`);
+    doc.fillColor("black");
+   }
+
+    doc.moveDown(0.5);
     });
 
     doc.end();
