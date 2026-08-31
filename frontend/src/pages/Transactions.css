@@ -1,6 +1,16 @@
+/* =========================================================
+   Transactions Page
+========================================================= */
+
 .transactions-page {
+  width: 100%;
   padding: 24px;
+  color: var(--text-primary);
 }
+
+/* =========================================================
+   Header
+========================================================= */
 
 .transactions-header {
   display: flex;
@@ -12,67 +22,102 @@
 
 .transactions-header h1 {
   margin: 0 0 6px;
+  color: var(--text-primary);
   font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .transactions-header p {
   margin: 0;
-  color: #6b7280;
+  color: var(--text-muted);
+  font-size: 14px;
 }
+
+/* =========================================================
+   Add Transaction Button
+========================================================= */
 
 .add-transaction-button {
   border: none;
   border-radius: 8px;
   padding: 11px 18px;
+
   background: #1783c1;
   color: #ffffff;
+
   font-size: 14px;
   font-weight: 600;
+
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  white-space: nowrap;
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .add-transaction-button:hover {
   background: #0a3c6e;
   transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(37, 99, 235, 0.2);
 }
 
-/* =========================
+/* =========================================================
    Transaction Summary
-========================= */
+========================================================= */
 
 .transaction-summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
   margin-bottom: 24px;
 }
 
 .transaction-summary-card {
+  min-width: 0;
+
   display: flex;
   align-items: center;
   gap: 16px;
+
   padding: 20px;
-  border: 1px solid #e5e7eb;
+
+  border: 1px solid var(--border-color);
   border-radius: 12px;
-  background: #f2f1f1;
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  background: var(--bg-secondary);
+  box-shadow: var(--card-shadow);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.25s ease,
+    border-color 0.25s ease;
 }
 
 .transaction-summary-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 11px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 11px 24px rgba(0, 0, 0, 0.1);
 }
+
+/* =========================================================
+   Summary Icons
+========================================================= */
 
 .transaction-summary-icon {
   width: 46px;
   height: 46px;
+
   flex-shrink: 0;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   border-radius: 10px;
+
   font-size: 18px;
   font-weight: 700;
 }
@@ -93,6 +138,10 @@
   font-size: 13px;
 }
 
+/* =========================================================
+   Summary Content
+========================================================= */
+
 .transaction-summary-content {
   min-width: 0;
 }
@@ -100,16 +149,24 @@
 .transaction-summary-content span {
   display: block;
   margin-bottom: 6px;
-  color: #6b7280;
+
+  color: var(--text-muted);
+
   font-size: 13px;
   font-weight: 600;
 }
 
 .transaction-summary-content h2 {
   margin: 0;
-  color: #111827;
+
+  color: var(--text-primary);
+
   font-size: 22px;
   font-weight: 700;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .balance-positive {
@@ -120,76 +177,112 @@
   color: #dc2626 !important;
 }
 
-/* =========================
+/* =========================================================
    Modal Overlay
-========================= */
+========================================================= */
 
 .transaction-modal-overlay {
   position: fixed;
   inset: 0;
+
   z-index: 1000;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   padding: 20px;
+
   background: rgba(15, 23, 42, 0.55);
 }
 
-/* =========================
-   Add / Edit Modal
-========================= */
+/* =========================================================
+   Add / Edit Transaction Modal
+========================================================= */
 
 .transaction-modal {
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
+
   overflow-y: auto;
+
+  border: 1px solid var(--border-color);
   border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease;
 }
+
+/* =========================================================
+   Modal Header
+========================================================= */
 
 .transaction-modal-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+
   gap: 20px;
+
   padding: 24px 24px 18px;
-  border-bottom: 1px solid #e5e7eb;
+
+  border-bottom: 1px solid var(--border-color);
 }
 
 .transaction-modal-header h2 {
   margin: 0 0 5px;
+
+  color: var(--text-primary);
+
   font-size: 21px;
-  color: #111827;
+  font-weight: 700;
 }
 
 .transaction-modal-header p {
   margin: 0;
-  color: #6b7280;
+
+  color: var(--text-muted);
+
   font-size: 13px;
 }
 
 .close-modal-button {
   width: 34px;
   height: 34px;
+
+  flex-shrink: 0;
+
   border: none;
   border-radius: 7px;
-  background: #f3f4f6;
-  color: #4b5563;
+
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+
   font-size: 24px;
   line-height: 1;
+
   cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .close-modal-button:hover {
-  background: #e5e7eb;
-  color: #111827;
+  background: var(--hover-bg);
+  color: var(--text-primary);
 }
 
-/* =========================
+/* =========================================================
    Form
-========================= */
+========================================================= */
 
 .transaction-form {
   padding: 24px;
@@ -205,39 +298,138 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
+
   margin-bottom: 17px;
 }
 
 .transaction-form-group label {
+  color: var(--text-secondary);
+
   font-size: 13px;
   font-weight: 600;
-  color: #374151;
 }
 
-.transaction-form-group input,
-.transaction-form-group select {
+/* =========================================================
+   Inputs
+========================================================= */
+
+.transaction-form-group input {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #d1d5db;
+
+  border: 1px solid var(--border-color);
   border-radius: 8px;
+
   padding: 11px 12px;
-  background: #ffffff;
-  color: #111827;
+
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+
   font-size: 14px;
+
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
 
-.transaction-form-group input:focus,
-.transaction-form-group select:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+.transaction-form-group input::placeholder {
+  color: var(--text-light);
 }
+
+.transaction-form-group input:focus {
+  border-color: #2563eb;
+
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* =========================================================
+   Select / Dropdown
+========================================================= */
+
+.transaction-form-group select,
+.transactions-filters select {
+  width: 100%;
+  box-sizing: border-box;
+
+  min-height: 42px;
+
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+
+  padding: 10px 12px;
+
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+
+  font-size: 14px;
+
+  outline: none;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.25s ease,
+    color 0.25s ease;
+
+  color-scheme: light;
+}
+
+.transaction-form-group select:focus,
+.transactions-filters select:focus {
+  border-color: #2563eb;
+
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* Native dropdown options */
+.transaction-form-group select option,
+.transactions-filters select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Dark mode native select */
+:root[data-theme="dark"] .transaction-form-group select,
+:root[data-theme="dark"] .transactions-filters select {
+  background-color: #273449;
+  color: #f9fafb;
+  border-color: #4b5563;
+
+  color-scheme: dark;
+}
+
+:root[data-theme="dark"] .transaction-form-group select option,
+:root[data-theme="dark"] .transactions-filters select option {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
+
+:root[data-theme="dark"] .transaction-form-group select:focus,
+:root[data-theme="dark"] .transactions-filters select:focus {
+  background-color: #273449;
+  color: #f9fafb;
+
+  border-color: #3b82f6;
+
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* =========================================================
+   Form Actions
+========================================================= */
 
 .transaction-form-actions {
   display: flex;
   justify-content: flex-end;
+
   gap: 10px;
+
   margin-top: 8px;
 }
 
@@ -246,10 +438,18 @@
 .confirm-delete-button {
   border: none;
   border-radius: 8px;
+
   padding: 11px 18px;
+
   font-size: 14px;
   font-weight: 600;
+
   cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .save-transaction-button {
@@ -259,54 +459,74 @@
 
 .save-transaction-button:hover {
   background: #0a3c6e;
+  transform: translateY(-1px);
 }
 
 .cancel-transaction-button {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+
+  border: 1px solid var(--border-color);
 }
 
 .cancel-transaction-button:hover {
-  background: #e5e7eb;
+  background: var(--hover-bg);
+  color: var(--text-primary);
 }
 
-/* =========================
+/* =========================================================
    Delete Confirmation
-========================= */
+========================================================= */
 
 .delete-confirmation-modal {
   width: 100%;
   max-width: 420px;
+
   padding: 28px;
+
+  border: 1px solid var(--border-color);
   border-radius: 14px;
-  background: #ffffff;
+
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+
   text-align: center;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
 }
 
 .delete-confirmation-icon {
   width: 44px;
   height: 44px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   margin: 0 auto 16px;
+
   border-radius: 50%;
+
   background: #fee2e2;
   color: #dc2626;
+
   font-size: 22px;
   font-weight: 700;
 }
 
 .delete-confirmation-modal h2 {
   margin: 0 0 10px;
-  color: #111827;
+
+  color: var(--text-primary);
+
   font-size: 20px;
 }
 
 .delete-confirmation-modal p {
   margin: 0;
-  color: #6b7280;
+
+  color: var(--text-muted);
+
   font-size: 14px;
   line-height: 1.6;
 }
@@ -314,7 +534,9 @@
 .delete-confirmation-actions {
   display: flex;
   justify-content: center;
+
   gap: 10px;
+
   margin-top: 24px;
 }
 
@@ -325,82 +547,145 @@
 
 .confirm-delete-button:hover {
   background: #b91c1c;
+  transform: translateY(-1px);
 }
 
-/* =========================
+/* =========================================================
    Transactions Content
-========================= */
+========================================================= */
 
 .transactions-content {
-  border-radius: 12px;
-  background: #ffffff;
+  width: 100%;
+
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+
+  background: var(--bg-secondary);
+
+  box-shadow: var(--card-shadow);
+
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease;
 }
+
+/* =========================================================
+   Filters
+========================================================= */
 
 .transactions-filters {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
-}
 
-.transactions-filters input,
-.transactions-filters select {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
+  margin-bottom: 20px;
 }
 
 .transactions-filters input {
   flex: 1;
+
+  min-height: 42px;
+
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+
+  padding: 10px 12px;
+
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+
+  font-size: 14px;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
 
-.transactions-filters input:focus,
-.transactions-filters select:focus {
+.transactions-filters input::placeholder {
+  color: var(--text-light);
+}
+
+.transactions-filters input:focus {
   border-color: #2563eb;
+
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
 }
 
-/* =========================
+/* =========================================================
    Transactions Table
-========================= */
+========================================================= */
 
 .transactions-table-container {
   width: 100%;
+
   overflow-x: auto;
+
+  border-radius: 8px;
 }
 
 .transactions-table {
   width: 100%;
+
   border-collapse: collapse;
 }
 
 .transactions-table th,
 .transactions-table td {
   padding: 14px 12px;
-  border-bottom: 1px solid #e5e7eb;
+
+  border-bottom: 1px solid var(--border-light);
+
   text-align: left;
+
   white-space: nowrap;
 }
 
 .transactions-table th {
-  background: #f9fafb;
-  color: #6b7280;
+  background: var(--bg-tertiary);
+
+  color: var(--text-muted);
+
   font-size: 12px;
   font-weight: 600;
+
   text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .transactions-table td {
-  color: #374151;
+  color: var(--text-secondary);
+
   font-size: 14px;
 }
 
+.transactions-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.transactions-table tbody tr:hover {
+  background: var(--hover-bg);
+}
+
+.transactions-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================================================
+   Transaction Type
+========================================================= */
+
 .transaction-type {
   display: inline-block;
+
   border-radius: 999px;
+
   padding: 5px 9px;
+
   font-size: 12px;
   font-weight: 600;
 }
@@ -415,6 +700,10 @@
   color: #991b1b;
 }
 
+/* =========================================================
+   Transaction Amount
+========================================================= */
+
 .transaction-amount {
   font-weight: 600;
 }
@@ -427,9 +716,9 @@
   color: #dc2626;
 }
 
-/* =========================
+/* =========================================================
    Table Actions
-========================= */
+========================================================= */
 
 .transaction-actions {
   display: flex;
@@ -441,10 +730,17 @@
 .delete-transaction-button {
   border: none;
   border-radius: 6px;
+
   padding: 7px 10px;
+
   font-size: 12px;
   font-weight: 600;
+
   cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .edit-transaction-button {
@@ -454,6 +750,7 @@
 
 .edit-transaction-button:hover {
   background: #bfdbfe;
+  transform: translateY(-1px);
 }
 
 .delete-transaction-button {
@@ -463,23 +760,89 @@
 
 .delete-transaction-button:hover {
   background: #fecaca;
+  transform: translateY(-1px);
 }
+
+/* =========================================================
+   Empty State
+========================================================= */
 
 .no-transactions {
   padding: 30px !important;
+
   text-align: center !important;
-  color: #6b7280 !important;
+
+  color: var(--text-muted) !important;
 }
 
-/* =========================
-   Responsive
-========================= */
+/* =========================================================
+   Dark Mode Fine Tuning
+========================================================= */
+
+:root[data-theme="dark"] .transaction-summary-card,
+:root[data-theme="dark"] .transactions-content,
+:root[data-theme="dark"] .transaction-modal,
+:root[data-theme="dark"] .delete-confirmation-modal {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+
+:root[data-theme="dark"] .income-icon {
+  background: rgba(22, 163, 74, 0.16);
+}
+
+:root[data-theme="dark"] .expense-icon {
+  background: rgba(220, 38, 38, 0.16);
+}
+
+:root[data-theme="dark"] .balance-icon {
+  background: rgba(37, 99, 235, 0.18);
+}
+
+:root[data-theme="dark"] .transaction-type.income {
+  background: rgba(22, 163, 74, 0.18);
+  color: #86efac;
+}
+
+:root[data-theme="dark"] .transaction-type.expense {
+  background: rgba(220, 38, 38, 0.18);
+  color: #fca5a5;
+}
+
+:root[data-theme="dark"] .edit-transaction-button {
+  background: rgba(37, 99, 235, 0.18);
+  color: #93c5fd;
+}
+
+:root[data-theme="dark"] .edit-transaction-button:hover {
+  background: rgba(37, 99, 235, 0.28);
+}
+
+:root[data-theme="dark"] .delete-transaction-button {
+  background: rgba(220, 38, 38, 0.18);
+  color: #fca5a5;
+}
+
+:root[data-theme="dark"] .delete-transaction-button:hover {
+  background: rgba(220, 38, 38, 0.28);
+}
+
+:root[data-theme="dark"] .transaction-modal-overlay {
+  background: rgba(0, 0, 0, 0.68);
+}
+
+/* =========================================================
+   Tablet
+========================================================= */
 
 @media (max-width: 900px) {
   .transaction-summary-grid {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   Mobile
+========================================================= */
 
 @media (max-width: 700px) {
   .transactions-page {
@@ -489,10 +852,28 @@
   .transactions-header {
     align-items: flex-start;
     flex-direction: column;
+    gap: 14px;
+  }
+
+  .transactions-header h1 {
+    font-size: 25px;
+  }
+
+  .transactions-header p {
+    font-size: 13px;
   }
 
   .add-transaction-button {
     width: 100%;
+  }
+
+  .transaction-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .transaction-summary-card {
+    padding: 18px;
   }
 
   .transaction-form-row {
@@ -510,6 +891,28 @@
     box-sizing: border-box;
   }
 
+  .transaction-modal-overlay {
+    align-items: flex-start;
+
+    padding: 16px;
+
+    overflow-y: auto;
+  }
+
+  .transaction-modal {
+    max-height: calc(100vh - 32px);
+
+    margin: auto 0;
+  }
+
+  .transaction-modal-header {
+    padding: 20px 18px 16px;
+  }
+
+  .transaction-form {
+    padding: 18px;
+  }
+
   .transaction-form-actions,
   .delete-confirmation-actions {
     flex-direction: column-reverse;
@@ -520,19 +923,88 @@
   .confirm-delete-button {
     width: 100%;
   }
+
+  .delete-confirmation-modal {
+    padding: 24px 20px;
+  }
+
+  .transactions-content {
+    padding: 16px;
+  }
+
+  .transactions-table-container {
+    overflow-x: auto;
+  }
+
+  .transactions-table {
+    min-width: 720px;
+  }
 }
 
+/* =========================================================
+   Small Mobile
+========================================================= */
+
 @media (max-width: 480px) {
+  .transactions-page {
+    padding: 12px;
+  }
+
+  .transactions-header h1 {
+    font-size: 23px;
+  }
+
   .transaction-summary-card {
+    gap: 13px;
     padding: 16px;
   }
 
   .transaction-summary-icon {
     width: 42px;
     height: 42px;
+    font-size: 16px;
+  }
+
+  .transaction-summary-content span {
+    font-size: 12px;
   }
 
   .transaction-summary-content h2 {
     font-size: 19px;
+  }
+
+  .transactions-content {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .transaction-modal-overlay {
+    padding: 10px;
+  }
+
+  .transaction-modal {
+    max-height: calc(100vh - 20px);
+    border-radius: 12px;
+  }
+
+  .transaction-modal-header {
+    padding: 18px 16px 14px;
+  }
+
+  .transaction-modal-header h2 {
+    font-size: 19px;
+  }
+
+  .transaction-form {
+    padding: 16px;
+  }
+
+  .delete-confirmation-modal {
+    padding: 22px 18px;
+  }
+
+  .transactions-table th,
+  .transactions-table td {
+    padding: 12px 10px;
   }
 }

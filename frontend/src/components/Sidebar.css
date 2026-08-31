@@ -1,60 +1,229 @@
+/* =========================================================
+   Sidebar
+========================================================= */
+
+.sidebar {
+  width: 240px;
+  min-height: calc(100vh - 70px);
+
+  flex-shrink: 0;
+
+  padding: 20px 12px;
+
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+
+  border-right: 1px solid var(--border-color);
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+
+  transition:
+    width 0.25s ease,
+    opacity 0.2s ease,
+    background-color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+/* =========================================================
+   Collapsed Sidebar
+========================================================= */
 
 .sidebar-collapsed {
   width: 0;
+
   opacity: 0;
+
   pointer-events: none;
+
+  border-right-color: transparent;
 }
 
-.sidebar-label {
-  white-space: nowrap;
-}
-.sidebar {
-  min-height: calc(100vh - 70px);
-  padding: 20px 12px;
-  background-color: #ffffff;
-  border-right: 1px solid #e5e7eb;
-  box-sizing: border-box;
-    width: 240px;
-  flex-shrink: 0;
-  overflow: hidden;
-  transition: width 0.25s ease, opacity 0.2s ease;
-}
+/* =========================================================
+   Sidebar Menu
+========================================================= */
 
 .sidebar-menu {
   display: flex;
   flex-direction: column;
+
   gap: 8px;
 }
+
+/* =========================================================
+   Sidebar Item
+========================================================= */
 
 .sidebar-item {
   display: flex;
   align-items: center;
+
   gap: 12px;
+
+  width: 100%;
+
   padding: 12px 16px;
-  border-radius: 8px;
-  color: #374151;
+
+  border-radius: 9px;
+
+  background: transparent;
+  color: var(--text-secondary);
+
   text-decoration: none;
+
   font-size: 15px;
   font-weight: 600;
-  transition: 0.2s ease;
+
+  box-sizing: border-box;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
+
+/* =========================================================
+   Sidebar Item Hover
+========================================================= */
 
 .sidebar-item:hover {
-  background-color: #dbdbdd;
+  background: var(--hover-bg);
+
+  color: var(--text-primary);
+
+  transform: translateX(2px);
 }
+
+/* =========================================================
+   Active Item
+========================================================= */
 
 .sidebar-item.active {
-  background-color: #1783c1;
+  background: #1783c1;
+
   color: #ffffff;
+
+  box-shadow: 0 4px 10px rgba(23, 131, 193, 0.18);
 }
 
-.sidebar-item span:first-child {
+.sidebar-item.active:hover {
+  background: #0a3c6e;
+
+  color: #ffffff;
+
+  transform: translateX(2px);
+}
+
+/* =========================================================
+   Sidebar Icon
+========================================================= */
+
+.sidebar-icon {
   width: 24px;
+  min-width: 24px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: currentColor;
+
   text-align: center;
+
   font-size: 18px;
+  line-height: 1;
 }
 
-.sidebar-item.active {
-  background-color: #1783c1;
+/* =========================================================
+   Sidebar Label
+========================================================= */
+
+.sidebar-label {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: inherit;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+/* =========================================================
+   Dark Theme
+========================================================= */
+
+html[data-theme="dark"] .sidebar {
+  background: var(--bg-secondary);
+
+  border-right-color: var(--border-color);
+}
+
+html[data-theme="dark"] .sidebar-item {
+  color: var(--text-secondary);
+}
+
+html[data-theme="dark"] .sidebar-item:hover {
+  background: var(--hover-bg);
+
+  color: var(--text-primary);
+}
+
+html[data-theme="dark"] .sidebar-item.active {
+  background: #1783c1;
+
   color: #ffffff;
+}
+
+html[data-theme="dark"] .sidebar-item.active:hover {
+  background: #0a3c6e;
+
+  color: #ffffff;
+}
+
+/* =========================================================
+   Mobile
+========================================================= */
+
+@media (max-width: 700px) {
+  .sidebar {
+    width: 220px;
+
+    padding: 16px 10px;
+  }
+
+  .sidebar-item {
+    padding: 11px 14px;
+
+    font-size: 14px;
+  }
+
+  .sidebar-icon {
+    width: 22px;
+    min-width: 22px;
+
+    font-size: 17px;
+  }
+}
+
+/* =========================================================
+   Small Mobile
+========================================================= */
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 210px;
+  }
+
+  .sidebar-item {
+    gap: 10px;
+
+    padding: 10px 12px;
+  }
+
+  .sidebar-label {
+    font-size: 14px;
+  }
 }

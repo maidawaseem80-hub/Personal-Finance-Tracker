@@ -1,35 +1,137 @@
+/* =========================================================
+   Global Theme
+========================================================= */
+
 :root {
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
     sans-serif;
+
   line-height: 1.5;
   font-weight: 400;
 
-  color: #111827;
-  background: #f5f7fb;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* =======================================================
+     Light Theme
+  ======================================================= */
+
+  --bg-primary: #f5f7fb;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f9fafb;
+  --hover-bg: #f3f4f6;
+
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-muted: #6b7280;
+  --text-light: #9ca3af;
+
+  --border-color: #e5e7eb;
+  --border-light: #f0f0f0;
+
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+
+  color: var(--text-primary);
+  background: var(--bg-primary);
 }
+
+/* =========================================================
+   Dark Theme
+========================================================= */
+
+:root[data-theme="dark"] {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #273449;
+  --hover-bg: #374151;
+
+  --text-primary: #f9fafb;
+  --text-secondary: #e5e7eb;
+  --text-muted: #9ca3af;
+  --text-light: #6b7280;
+
+  --border-color: #374151;
+  --border-light: #374151;
+
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* =========================================================
+   Global Reset
+========================================================= */
 
 * {
   box-sizing: border-box;
 }
 
 html,
-body {
-  margin: 0;
+body,
+#root {
+  width: 100%;
   min-width: 320px;
   min-height: 100%;
+  margin: 0;
+  padding: 0;
 }
+
+/* =========================================================
+   HTML
+========================================================= */
+
+html {
+  background: var(--bg-primary);
+
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+/* =========================================================
+   Body
+========================================================= */
 
 body {
   min-height: 100vh;
+
+  background: var(--bg-primary);
+  color: var(--text-primary);
+
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
 
+/* =========================================================
+   Root
+========================================================= */
+
+#root {
+  min-height: 100vh;
+
+  background: var(--bg-primary);
+  color: var(--text-primary);
+
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+/* =========================================================
+   Form Elements
+========================================================= */
+
 button,
-input {
+input,
+textarea,
+select {
   font: inherit;
 }
 
@@ -37,6 +139,34 @@ button {
   cursor: pointer;
 }
 
-#root {
-  min-height: 100vh;
+/* =========================================================
+   Dark Theme Form Elements
+========================================================= */
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* =========================================================
+   Smooth Theme Transition
+========================================================= */
+
+html[data-theme="dark"],
+html[data-theme="light"],
+html[data-theme="dark"] body,
+html[data-theme="light"] body,
+html[data-theme="dark"] #root,
+html[data-theme="light"] #root {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
 }

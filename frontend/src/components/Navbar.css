@@ -7,14 +7,18 @@
   align-items: center;
   justify-content: space-between;
 
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
   box-sizing: border-box;
 
   position: relative;
   z-index: 100;
 
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease;
 }
 
 /* =========================
@@ -28,7 +32,7 @@
 
   font-size: 20px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .navbar-logo {
@@ -47,6 +51,45 @@
 }
 
 /* =========================
+   Theme Toggle
+========================= */
+
+.theme-toggle-button {
+  width: 42px;
+  height: 42px;
+
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.theme-toggle-button:hover {
+  background: var(--hover-bg);
+  border-color: var(--border-color);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(37, 99, 235, 0.15);
+}
+
+.theme-toggle-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* =========================
    Notification
 ========================= */
 
@@ -58,10 +101,11 @@
   width: 42px;
   height: 42px;
 
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   border-radius: 50%;
 
-  background: #f8fafc;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 
   display: flex;
   align-items: center;
@@ -78,8 +122,8 @@
 }
 
 .notification-button:hover {
-  background: #f1f5f9;
-  border-color: #d1d5db;
+  background: var(--hover-bg);
+  border-color: var(--border-color);
   transform: translateY(-1px);
   box-shadow: 0 5px 12px rgba(37, 99, 235, 0.15);
 }
@@ -131,7 +175,7 @@
   background: #ef4444;
   color: #ffffff;
 
-  border: 2px solid #ffffff;
+  border: 2px solid var(--bg-secondary);
 
   font-size: 10px;
   font-weight: 700;
@@ -153,15 +197,19 @@
   width: 360px;
   max-height: 500px;
 
-  background: #ffffff;
+  background: var(--bg-secondary);
 
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   border-radius: 14px;
 
   box-shadow: 0 18px 45px rgba(35, 50, 84, 0.14);
 
   overflow: hidden;
   z-index: 1000;
+
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease;
 }
 
 /* =========================
@@ -171,14 +219,14 @@
 .notification-header {
   padding: 17px 18px;
 
-  border-bottom: 1px solid #eef0f3;
-  background: #ffffff;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-secondary);
 }
 
 .notification-header h3 {
   margin: 0;
 
-  color: #111827;
+  color: var(--text-primary);
 
   font-size: 16px;
   font-weight: 700;
@@ -187,7 +235,7 @@
 .notification-header p {
   margin: 4px 0 0;
 
-  color: #9ca3af;
+  color: var(--text-muted);
 
   font-size: 12px;
 }
@@ -207,17 +255,17 @@
 
   padding: 15px 17px;
 
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border-light);
 
   transition: background 0.2s ease;
 }
 
 .notification-item:hover {
-  background: #f8fafc;
+  background: var(--hover-bg);
 }
 
 .notification-item.unread {
-  background: #f8fbff;
+  background: var(--bg-tertiary);
 }
 
 .notification-item-icon {
@@ -246,7 +294,7 @@
 
   margin-bottom: 4px;
 
-  color: #374151;
+  color: var(--text-secondary);
 
   font-size: 13px;
   font-weight: 700;
@@ -255,7 +303,7 @@
 .notification-item-content p {
   margin: 0;
 
-  color: #6b7280;
+  color: var(--text-muted);
 
   font-size: 12px;
   line-height: 1.5;
@@ -268,7 +316,7 @@
 
   margin-top: 7px;
 
-  color: #9ca3af;
+  color: var(--text-muted);
 
   font-size: 10px;
 }
@@ -282,7 +330,7 @@
 
   text-align: center;
 
-  color: #6b7280;
+  color: var(--text-muted);
 
   font-size: 13px;
 }
@@ -305,7 +353,7 @@
 
   border-radius: 50%;
 
-  background: #f3f4f6;
+  background: var(--bg-tertiary);
 
   display: flex;
   align-items: center;
@@ -317,7 +365,7 @@
 .notification-empty strong {
   display: block;
 
-  color: #374151;
+  color: var(--text-secondary);
 
   font-size: 14px;
 }
@@ -325,27 +373,37 @@
 .notification-empty p {
   margin: 5px 0 0;
 
-  color: #9ca3af;
+  color: var(--text-muted);
 
   font-size: 12px;
 }
 
+/* =========================
+   Bell Animation
+========================= */
+
 @keyframes bell-shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(0deg);
   }
+
   15% {
     transform: rotate(14deg);
   }
+
   30% {
     transform: rotate(-12deg);
   }
+
   45% {
     transform: rotate(10deg);
   }
+
   60% {
     transform: rotate(-8deg);
   }
+
   75% {
     transform: rotate(4deg);
   }
@@ -387,8 +445,7 @@
   background: #0a3c6e;
   color: #ffffff;
   transform: translateY(-2px);
-   box-shadow: 0 5px 12px rgba(4, 1, 30, 0.4);
-
+  box-shadow: 0 5px 12px rgba(4, 1, 30, 0.4);
 }
 
 /* =========================

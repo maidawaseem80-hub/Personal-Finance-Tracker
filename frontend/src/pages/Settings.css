@@ -1,43 +1,79 @@
+/* =========================================================
+   Settings Page
+========================================================= */
+
 .settings-page {
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
   padding: 32px 24px;
+  color: var(--text-primary);
+}
+
+.settings-header {
+  margin-bottom: 24px;
 }
 
 .settings-header h1 {
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .settings-header p {
   margin: 0;
-  color: #666;
+  color: var(--text-muted);
+  font-size: 14px;
 }
+
+/* =========================================================
+   Sections
+========================================================= */
 
 .settings-sections {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  margin-top: 24px;
 }
 
+/* =========================================================
+   Settings Card
+========================================================= */
+
 .settings-card {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 24px;
+  box-shadow: var(--card-shadow);
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.settings-card-header {
+  margin-bottom: 18px;
 }
 
 .settings-card-header h2 {
-  margin: 0 0 4px;
+  margin: 0 0 5px;
   font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .settings-card-header p {
-  margin: 0 0 16px;
-  color: #777;
+  margin: 0;
+  color: var(--text-muted);
   font-size: 14px;
+  line-height: 1.5;
 }
+
+/* =========================================================
+   Forms
+========================================================= */
 
 .settings-form,
 .category-form {
@@ -55,18 +91,46 @@
 .settings-field label {
   font-size: 13px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-secondary);
 }
 
 .settings-field input,
 .settings-field select {
-  padding: 10px 12px;
-  border: 1px solid #d0d0d0;
-  border-radius: 8px;
-  font-size: 14px;
   width: 100%;
   box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
+
+.settings-field input:focus,
+.settings-field select:focus {
+  border-color: #1783c1;
+  box-shadow: 0 0 0 3px rgba(23, 131, 193, 0.12);
+}
+
+.settings-field input::placeholder {
+  color: var(--text-light);
+}
+
+.settings-field input:disabled,
+.settings-field select:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   Password Fields
+========================================================= */
 
 .password-field {
   position: relative;
@@ -75,31 +139,41 @@
 }
 
 .password-field input {
-  padding-right: 44px;
+  padding-right: 46px;
 }
 
 .password-toggle {
   position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  padding: 6px;
+  right: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 6px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
   cursor: pointer;
-  color: #6b7280;
-  transition: color 0.15s ease;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .password-toggle:hover {
-  color: #2563eb;
+  color: #1783c1;
+  background: var(--hover-bg);
 }
 
 .password-icon {
   width: 20px;
   height: 20px;
 }
+
+/* =========================================================
+   Buttons
+========================================================= */
 
 .settings-primary-button,
 .settings-secondary-button,
@@ -108,42 +182,55 @@
   padding: 10px 16px;
   border-radius: 8px;
   font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .settings-primary-button {
-  background: #1783c1;
-  color: #fff;
   align-self: flex-start;
+  background: #1783c1;
+  color: #ffffff;
 }
 
 .settings-primary-button:hover {
   background: #0a3c6e;
-  transition: background 0.2s ease;
-  box-shadow: 0 5px 12px rgba(37, 99, 235, 0.25);
-  transform: translateY(-2px);
-  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 5px 12px rgba(23, 131, 193, 0.25);
+  transform: translateY(-1px);
 }
 
-.settings-primary-button:disabled {
+.settings-primary-button:disabled,
+.settings-secondary-button:disabled,
+.settings-edit-button:disabled,
+.settings-danger-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .settings-secondary-button {
   background: #1783c1;
   color: #ffffff;
-  border-color: #d0d0d0;
+  border-color: #1783c1;
 }
 
 .settings-secondary-button:hover {
   background: #0a3c6e;
-  transition: background 0.2s ease;
-  box-shadow: 0 5px 12px rgba(37, 99, 235, 0.25);
-  transform: translateY(-2px);
-  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  border-color: #0a3c6e;
+  box-shadow: 0 5px 12px rgba(23, 131, 193, 0.25);
+  transform: translateY(-1px);
 }
+
+/* =========================================================
+   Preferences
+========================================================= */
 
 .settings-options {
   display: flex;
@@ -156,14 +243,48 @@
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  flex-wrap: wrap;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.settings-option:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.settings-option h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.settings-option p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .settings-option select {
-  padding: 8px 10px;
+  min-width: 210px;
+  padding: 9px 10px;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  border: 1px solid #d0d0d0;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
 }
+
+.settings-option select:focus {
+  border-color: #1783c1;
+  box-shadow: 0 0 0 3px rgba(23, 131, 193, 0.12);
+}
+
+/* =========================================================
+   Toggle Switch
+========================================================= */
 
 .settings-switch {
   position: relative;
@@ -174,6 +295,7 @@
 }
 
 .settings-switch input {
+  position: absolute;
   opacity: 0;
   width: 0;
   height: 0;
@@ -182,21 +304,23 @@
 .settings-switch span {
   position: absolute;
   inset: 0;
-  background: #ccc;
+  background: var(--border-color);
   border-radius: 999px;
-  transition: 0.2s;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .settings-switch span::before {
   content: "";
   position: absolute;
-  height: 18px;
   width: 18px;
+  height: 18px;
   left: 3px;
   bottom: 3px;
-  background: #fff;
+  background: #ffffff;
   border-radius: 50%;
-  transition: 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
 }
 
 .settings-switch input:checked + span {
@@ -207,25 +331,62 @@
   transform: translateX(18px);
 }
 
+/* =========================================================
+   Messages
+========================================================= */
+
 .category-message {
   margin: 0;
-  font-size: 13px;
-  padding: 8px 12px;
+  padding: 9px 12px;
   border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .category-error {
   background: #fef2f2;
   color: #b91c1c;
+  border: 1px solid #fecaca;
 }
 
 .category-success {
   background: #f0fdf4;
   color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+/* Dark mode messages */
+
+html[data-theme="dark"] .category-error {
+  background: #3a1f24;
+  color: #fca5a5;
+  border-color: #5b2a32;
+}
+
+html[data-theme="dark"] .category-success {
+  background: #183329;
+  color: #86efac;
+  border-color: #24513d;
+}
+
+/* =========================================================
+   Categories
+========================================================= */
+
+.category-list {
+  margin-top: 24px;
+}
+
+.category-list h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .category-empty {
-  color: #777;
+  margin: 12px 0 0;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
@@ -241,10 +402,17 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  border: 1px solid #e5e5e5;
+  padding: 13px 16px;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  flex-wrap: wrap;
+  background: var(--bg-tertiary);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.category-item:hover {
+  background: var(--hover-bg);
 }
 
 .category-item-info {
@@ -254,10 +422,18 @@
   flex-wrap: wrap;
 }
 
+.category-item-info strong {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
 .category-type {
-  font-size: 12px;
-  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
   border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .category-type.income {
@@ -270,6 +446,22 @@
   color: #b91c1c;
 }
 
+/* Dark mode category badges */
+
+html[data-theme="dark"] .category-type.income {
+  background: #183329;
+  color: #86efac;
+}
+
+html[data-theme="dark"] .category-type.expense {
+  background: #3a1f24;
+  color: #fca5a5;
+}
+
+/* =========================================================
+   Category Actions
+========================================================= */
+
 .category-actions {
   display: flex;
   gap: 8px;
@@ -281,20 +473,54 @@
   color: #3730a3;
 }
 
+.settings-edit-button:hover {
+  background: #e0e7ff;
+}
+
 .settings-danger-button {
   background: #fef2f2;
   color: #b91c1c;
 }
 
+.settings-danger-button:hover {
+  background: #fee2e2;
+}
+
+/* Dark mode action buttons */
+
+html[data-theme="dark"] .settings-edit-button {
+  background: #252447;
+  color: #a5b4fc;
+}
+
+html[data-theme="dark"] .settings-edit-button:hover {
+  background: #30305a;
+}
+
+html[data-theme="dark"] .settings-danger-button {
+  background: #3a1f24;
+  color: #fca5a5;
+}
+
+html[data-theme="dark"] .settings-danger-button:hover {
+  background: #4a252c;
+}
+
+/* =========================================================
+   Category Editing
+========================================================= */
+
 .category-item-editing {
   flex-direction: column;
   align-items: stretch;
+  background: var(--bg-tertiary);
 }
 
 .category-edit-fields {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .category-edit-fields .settings-field {
@@ -304,8 +530,12 @@
 .category-edit-actions {
   display: flex;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 4px;
 }
+
+/* =========================================================
+   Security
+========================================================= */
 
 .security-row {
   display: flex;
@@ -315,7 +545,36 @@
   flex-wrap: wrap;
 }
 
-/* ---------- Responsive ---------- */
+.security-row h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.security-row p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* =========================================================
+   Dark Mode Extra Styling
+========================================================= */
+
+html[data-theme="dark"] .settings-card {
+  border-color: var(--border-color);
+}
+
+html[data-theme="dark"] .settings-field input,
+html[data-theme="dark"] .settings-field select,
+html[data-theme="dark"] .settings-option select {
+  color-scheme: dark;
+}
+
+/* =========================================================
+   Responsive
+========================================================= */
 
 @media (max-width: 768px) {
   .settings-page {
@@ -329,17 +588,39 @@
   .category-edit-fields {
     flex-direction: column;
   }
+
+  .settings-option select {
+    min-width: 180px;
+  }
 }
 
 @media (max-width: 480px) {
+  .settings-page {
+    padding: 20px 12px;
+  }
+
   .settings-header h1 {
     font-size: 22px;
+  }
+
+  .settings-header p {
+    font-size: 13px;
+  }
+
+  .settings-card {
+    padding: 16px;
+    border-radius: 10px;
   }
 
   .settings-option,
   .security-row {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .settings-option select {
+    width: 100%;
+    min-width: 0;
   }
 
   .settings-primary-button,
@@ -359,5 +640,13 @@
 
   .category-actions button {
     flex: 1;
+  }
+
+  .category-edit-actions {
+    flex-direction: column;
+  }
+
+  .category-edit-actions button {
+    width: 100%;
   }
 }

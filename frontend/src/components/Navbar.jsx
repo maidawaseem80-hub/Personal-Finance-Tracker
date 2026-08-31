@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
 import { useAlerts } from "../context/AlertContext";
+import { useTheme } from "../context/ThemeContext";
 
 import "./Navbar.css";
 
@@ -11,6 +12,7 @@ function Navbar() {
   const [shake, setShake] = useState(false);
 
   const { logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const {
     alerts,
@@ -51,7 +53,10 @@ function Navbar() {
     if (unreadCount > previousUnreadCount.current) {
       setShake(true);
 
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioContext = new (
+        window.AudioContext || window.webkitAudioContext
+      )();
+
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -60,7 +65,10 @@ function Navbar() {
 
       oscillator.frequency.value = 880;
       gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioContext.currentTime + 0.3
+      );
 
       oscillator.start();
       oscillator.stop(audioContext.currentTime + 0.3);
@@ -83,23 +91,42 @@ function Navbar() {
       </div>
 
       <div className="navbar-actions">
+
+        {/* Theme Toggle */}
+        <button
+          className="theme-toggle-button"
+          type="button"
+          onClick={toggleTheme}
+          aria-label={
+            theme === "light" ? "Switch to dark mode" : "Switch to light mode"
+          }
+          title={
+            theme === "light" ? "Switch to dark mode" : "Switch to light mode"
+          }
+        >
+          <span className="theme-toggle-icon">
+            {theme === "light" ? "🌙" : "☀️"}
+          </span>
+        </button>
+
+        {/* Notifications */}
         <div className="notification-wrapper">
-         <button
-   className={`notification-button${shake ? " shake" : ""}`}
-   type="button"
-   onClick={() => {
-    setShowNotifications((previous) => {
-      const next = !previous;
+          <button
+            className={`notification-button${shake ? " shake" : ""}`}
+            type="button"
+            onClick={() => {
+              setShowNotifications((previous) => {
+                const next = !previous;
 
-      if (next && unreadCount > 0) {
-        markAlertsAsRead();
-      }
+                if (next && unreadCount > 0) {
+                  markAlertsAsRead();
+                }
 
-      return next;
-    });
-  }}
-  aria-label="Notifications"
->
+                return next;
+              });
+            }}
+            aria-label="Notifications"
+          >
             <span className="notification-icon">🔔</span>
 
             {unreadCount > 0 && (
@@ -140,9 +167,7 @@ function Navbar() {
                       }`}
                       key={alert._id}
                     >
-                      <div className="notification-item-icon">
-                        ⚠️
-                      </div>
+                      <div className="notification-item-icon">⚠️</div>
 
                       <div className="notification-item-content">
                         <strong>Budget Alert</strong>
@@ -150,9 +175,7 @@ function Navbar() {
                         <p>{alert.message}</p>
 
                         <span>
-                          {formatNotificationDate(
-                            alert.createdAt
-                          )}
+                          {formatNotificationDate(alert.createdAt)}
                         </span>
                       </div>
                     </div>
@@ -162,9 +185,7 @@ function Navbar() {
 
               {!alertsLoading && alerts.length === 0 && (
                 <div className="notification-empty">
-                  <div className="notification-empty-icon">
-                    🔔
-                  </div>
+                  <div className="notification-empty-icon">🔔</div>
 
                   <strong>No notifications</strong>
 

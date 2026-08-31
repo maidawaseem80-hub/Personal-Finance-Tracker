@@ -1,88 +1,184 @@
+/* =========================================================
+   Dashboard Layout
+========================================================= */
+
 .dashboard-container {
+  width: 100%;
   min-height: 100vh;
-  background-color: #f9fafb;
+
+  background: var(--bg-primary);
+  color: var(--text-primary);
+
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
+
+/* =========================================================
+   Dashboard Body
+========================================================= */
 
 .dashboard-body {
   display: flex;
   min-height: calc(100vh - 70px);
+
   position: relative;
+
+  background: var(--bg-primary);
 }
+
+/* =========================================================
+   Main Content
+========================================================= */
 
 .dashboard-content {
   flex: 1;
+  min-width: 0;
+
   padding: 30px;
+
   box-sizing: border-box;
+
   overflow-x: auto;
-  transition: margin-left 0.25s ease;
+
+  background: var(--bg-primary);
+  color: var(--text-primary);
+
+  transition:
+    margin-left 0.25s ease,
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
+
+/* Prevent content from becoming too wide */
 
 .page-content {
   width: 100%;
+  min-width: 0;
 }
 
-/* ---------- Sidebar toggle button ---------- */
+/* =========================================================
+   Sidebar Toggle Button
+========================================================= */
 
 .sidebar-toggle-button {
   position: absolute;
+
   top: 16px;
   left: 220px;
+
   z-index: 20;
-  width: 26px;
-  height: 26px;
+
+  width: 28px;
+  height: 28px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #e5e7eb;
+
+  border: 1px solid var(--border-color);
   border-radius: 50%;
-  background: #ffffff;
-  color: #374151;
+
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+
   font-size: 14px;
+  font-weight: 600;
   line-height: 1;
+
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  transition: left 0.25s ease, background 0.2s ease;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  transition:
+    left 0.25s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .sidebar-toggle-button:hover {
-  background: #f3f4f6;
+  background: var(--hover-bg);
+  color: var(--text-primary);
+
+  border-color: var(--border-color);
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+  transform: translateY(-1px);
 }
+
+.sidebar-toggle-button:active {
+  transform: translateY(0);
+}
+
+/* =========================================================
+   Sidebar Open / Collapsed State
+========================================================= */
 
 .sidebar-toggle-open {
   left: 220px;
 }
 
-.dashboard-body:has(.sidebar-collapsed) .sidebar-toggle-button {
+/*
+   When sidebar is collapsed, move toggle
+   button to the left side.
+*/
+
+.dashboard-body:has(.sidebar-collapsed)
+  .sidebar-toggle-button {
   left: 12px;
 }
 
+/* =========================================================
+   Dark Theme
+========================================================= */
+
+html[data-theme="dark"] .dashboard-container,
+html[data-theme="dark"] .dashboard-body,
+html[data-theme="dark"] .dashboard-content {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* =========================================================
+   Mobile
+========================================================= */
+
 @media (max-width: 700px) {
+  .dashboard-content {
+    padding: 20px 16px;
+  }
+
   .sidebar-toggle-button {
-    left: 12px;
     top: 12px;
+    left: 12px;
+
+    width: 28px;
+    height: 28px;
   }
 
-  .dashboard-body:has(.sidebar-collapsed) .sidebar-toggle-button {
+  .dashboard-body:has(.sidebar-collapsed)
+    .sidebar-toggle-button {
     left: 12px;
   }
 }
-.dashboard-container {
-  min-height: 100vh;
-  background-color: #f9fafb;
-}
 
-.dashboard-body {
-  display: flex;
-  min-height: calc(100vh - 70px);
-}
+/* =========================================================
+   Small Mobile
+========================================================= */
 
-.dashboard-content {
-  flex: 1;
-  padding: 30px;
-  box-sizing: border-box;
-  overflow-x: auto;
-}
+@media (max-width: 480px) {
+  .dashboard-content {
+    padding: 16px 12px;
+  }
 
-.page-content {
-  width: 100%;
+  .sidebar-toggle-button {
+    width: 27px;
+    height: 27px;
+
+    font-size: 13px;
+  }
 }
