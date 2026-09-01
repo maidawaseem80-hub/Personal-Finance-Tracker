@@ -3,8 +3,38 @@ import Category from "../models/category.js";
 import Budget from "../models/budget.js";
 import Alert from "../models/alert.js";
 import asyncHandler from "../middleware/asyncHandler.js";
-import sendEmail from '../utils/sendEmail.js';
+import sendEmail from "../utils/sendEmail.js";
 import User from "../models/user.js";
+
+// =========================
+// Currency Helpers
+// =========================
+
+const getCurrencySymbol = (currency) => {
+  const symbols = {
+    PKR: "Rs.",
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+  };
+
+  return symbols[currency] || "Rs.";
+};
+
+const formatCurrency = (amount, currency) => {
+  const numericAmount = Number(amount || 0);
+
+  const symbols = {
+    PKR: "Rs.",
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+  };
+
+  const symbol = symbols[currency] || "Rs.";
+
+  return `${symbol} ${numericAmount.toLocaleString()}`;
+};
 
 // =========================
 // Get Budget Period Start
@@ -50,14 +80,22 @@ const getPeriodStart = (period) => {
   );
 };
 
+// =========================
+// Get Category Name
+// =========================
+
 const getCategoryName = async (budget) => {
   if (!budget.category) {
     return "Overall";
   }
 
-  const category = await Category.findById(budget.category);
+  const category = await Category.findById(
+    budget.category
+  );
 
-  return category ? category.name : "Unknown";
+  return category
+    ? category.name
+    : "Unknown";
 };
 
 // =========================
@@ -66,6 +104,31 @@ const getCategoryName = async (budget) => {
 
 const checkUserBudgetAlerts = async (userId) => {
   try {
+    // =========================
+    // Get User Preferences
+    // =========================
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      console.error(
+        "Budget alert check: User not found."
+      );
+
+      return;
+    }
+
+    const currency =
+      user.preferences?.currency || "PKR";
+
+    const emailNotifications =
+      user.preferences
+        ?.emailNotifications ?? true;
+
+    // =========================
+    // Get User Budgets
+    // =========================
+
     const budgets = await Budget.find({
       user: userId,
     });
@@ -87,7 +150,10 @@ const checkUserBudgetAlerts = async (userId) => {
         },
       };
 
-      // Category-specific budget
+      // =========================
+      // Category-Specific Budget
+      // =========================
+
       if (budget.category) {
         transactionFilter.category =
           budget.category;
@@ -123,7 +189,9 @@ const checkUserBudgetAlerts = async (userId) => {
       if (budgetAmount <= 0) {
         continue;
       }
-      const categoryName = await getCategoryName(budget);
+
+      const categoryName =
+        await getCategoryName(budget);
 
       const percentUsed =
         (totalSpent / budgetAmount) *
@@ -145,21 +213,6 @@ const checkUserBudgetAlerts = async (userId) => {
 
       // =========================
       // Reset Old Alerts
-      // =========================
-      //
-      // Example:
-      //
-      // Spending was 80%
-      // -> 80% alert created
-      //
-      // Transaction deleted
-      // -> spending becomes 40%
-      //
-      // The old 80% alert is removed.
-      //
-      // If spending later reaches 80%
-      // again, a fresh alert is created.
-      //
       // =========================
 
       const oldAlerts =
@@ -220,17 +273,22 @@ const checkUserBudgetAlerts = async (userId) => {
 
         if (threshold === 100) {
           message =
-            `You have reached or exceeded your ${categoryName} budget limit of Rs. ${budgetAmount.toLocaleString()}.`;
+            `You have reached or exceeded your ${categoryName} budget limit of ${formatCurrency(
+              budgetAmount,
+              currency
+            )}.`;
         } else {
           message =
-            `You have used ${percentUsed.toFixed(0)}% of your ${categoryName} budget.`;
+            `You have used ${percentUsed.toFixed(
+              0
+            )}% of your ${categoryName} budget.`;
         }
 
         // =========================
         // Create Alert
         // =========================
 
-                  const alert =
+        const alert =
           await Alert.create({
             user: userId,
             budget: budget._id,
@@ -247,24 +305,41 @@ const checkUserBudgetAlerts = async (userId) => {
           `Alert ID: ${alert._id}`
         );
 
-        try {
-          const user = await User.findById(userId);
+        // =========================
+        // Send Email According to
+        // User Preference
+        // =========================
 
-          if (user) {
+        if (emailNotifications) {
+          try {
             await sendEmail({
               to: user.email,
-              subject: "Budget Alert",
-              html: `<p>Hi ${user.name || ""},</p><p>${message}</p>`,
+
+              subject:
+                "Budget Alert",
+
+              html: `
+                <p>
+                  Hi ${user.name || ""},
+                </p>
+
+                <p>
+                  ${message}
+                </p>
+              `,
+
               text: message,
             });
+          } catch (emailError) {
+            console.error(
+              "Alert email error:",
+              emailError
+            );
           }
-        } catch (emailError) {
-          console.error("Alert email error:", emailError);
         }
       }
     }
   } catch (error) {
-    
     /*
       Alert checking should never
       prevent transaction operations.
@@ -549,17 +624,6 @@ export const updateTransaction =
     // =========================
     // Recalculate Budget Alerts
     // =========================
-    //
-    // This is important because an
-    // update can:
-    //
-    // - increase spending
-    // - decrease spending
-    // - change expense to income
-    // - change income to expense
-    // - change category
-    //
-    // =========================
 
     await checkUserBudgetAlerts(
       req.user._id
@@ -605,17 +669,6 @@ export const deleteTransaction =
 
     // =========================
     // Recalculate Budget Alerts
-    // =========================
-    //
-    // If deleting this transaction
-    // causes spending to fall below
-    // 80% or 100%, the corresponding
-    // old alert is removed.
-    //
-    // When spending crosses the
-    // threshold again later, a new
-    // notification will be created.
-    //
     // =========================
 
     await checkUserBudgetAlerts(

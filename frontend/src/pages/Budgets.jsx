@@ -1,5 +1,4 @@
 import {
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -8,7 +7,7 @@ import "./Budgets.css";
 
 import { useTransactions } from "../context/TransactionContext";
 import { useBudgets } from "../context/BudgetContext";
-import { useAlerts } from "../context/AlertContext";
+import { useAuth } from "../context/AuthContext";
 
 function Budgets() {
   const {
@@ -26,6 +25,10 @@ function Budgets() {
     deleteBudget,
   } = useBudgets();
 
+  const {
+    currency,
+    formatCurrency,
+  } = useAuth();
 
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
@@ -95,15 +98,13 @@ function Budgets() {
 
     return getStartOfMonth();
   };
-  
+
   // =========================
   // Currency
   // =========================
 
-  const formatCurrency = (amount) => {
-    return `Rs. ${Number(
-      amount || 0
-    ).toLocaleString()}`;
+  const displayCurrency = (amount) => {
+    return formatCurrency(amount);
   };
 
   // =========================
@@ -157,8 +158,7 @@ function Budgets() {
           return false;
         }
 
-        // Ignore transactions outside
-        // the current budget period.
+        // Ignore transactions without a date.
         if (!transaction.date) {
           return false;
         }
@@ -168,6 +168,8 @@ function Budgets() {
             transaction.date
           );
 
+        // Ignore transactions outside
+        // the current budget period.
         if (
           transactionDate <
           startDate
@@ -434,7 +436,12 @@ function Budgets() {
   };
 
   const handleCancelDelete = () => {
+    if (saving) {
+      return;
+    }
+
     setBudgetToDelete(null);
+    setFormError("");
   };
 
   const handleConfirmDelete =
@@ -598,7 +605,7 @@ function Budgets() {
       <div className="budget-summary-grid">
         <div className="budget-summary-card">
           <div className="budget-summary-icon budget-icon-blue">
-            Rs
+            {currency}
           </div>
 
           <div>
@@ -607,7 +614,7 @@ function Budgets() {
             </span>
 
             <h2>
-              {formatCurrency(
+              {displayCurrency(
                 budgetSummary.totalBudget
               )}
             </h2>
@@ -625,7 +632,7 @@ function Budgets() {
             </span>
 
             <h2>
-              {formatCurrency(
+              {displayCurrency(
                 budgetSummary.totalSpent
               )}
             </h2>
@@ -650,7 +657,7 @@ function Budgets() {
                   : "budget-negative"
               }
             >
-              {formatCurrency(
+              {displayCurrency(
                 budgetSummary.remaining
               )}
             </h2>
@@ -757,7 +764,7 @@ function Budgets() {
                       </span>
 
                       <strong>
-                        {formatCurrency(
+                        {displayCurrency(
                           spent
                         )}
                       </strong>
@@ -769,7 +776,7 @@ function Budgets() {
                       </span>
 
                       <strong>
-                        {formatCurrency(
+                        {displayCurrency(
                           budgetAmount
                         )}
                       </strong>
@@ -800,10 +807,10 @@ function Budgets() {
                     <span>
                       {remaining >=
                       0
-                        ? `${formatCurrency(
+                        ? `${displayCurrency(
                             remaining
                           )} remaining`
-                        : `${formatCurrency(
+                        : `${displayCurrency(
                             Math.abs(
                               remaining
                             )
