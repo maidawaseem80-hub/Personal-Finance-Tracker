@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import analyticsIllustration from "../assets/Analytics-pana.svg";
-import "./SignUp.css";
+import "./Signup.css";
 
 function SignUp() {
   const [name, setName] = useState("");
