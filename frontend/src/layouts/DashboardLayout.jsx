@@ -1,3 +1,25 @@
+// import { Outlet } from "react-router-dom";
+// import Navbar from "../components/Navbar";
+// import Sidebar from "../components/Sidebar";
+// import "./DashboardLayout.css";
+
+// function DashboardLayout() {
+//   return (
+//     <div className="dashboard-container">
+//       <Navbar />
+
+//       <div className="dashboard-body">
+//         <Sidebar />
+
+//         <main className="dashboard-content">
+//           <Outlet />
+//         </main>
+//       </div>
+//     </div>
+//   );
+// }
+
+// export default DashboardLayout;
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -5,9 +27,7 @@ import Sidebar from "../components/Sidebar";
 import "./DashboardLayout.css";
 
 function DashboardLayout() {
-  const isMobile =
-    typeof window !== "undefined" && window.innerWidth <= 700;
-  const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
@@ -27,7 +47,7 @@ function DashboardLayout() {
           aria-label={isSidebarOpen ? "Hide sidebar" : "Show sidebar"}
           title={isSidebarOpen ? "Hide sidebar" : "Show sidebar"}
         >
-          {isSidebarOpen ? " ☰" : " ☰"}
+          {isSidebarOpen ? "‹" : "›"}
         </button>
 
         <main className={`dashboard-content ${isSidebarOpen ? "" : "dashboard-content-expanded"}`}>

@@ -1,9 +1,14 @@
-/* =========================================================
-   Sidebar
-========================================================= */
 
+.sidebar-collapsed {
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidebar-label {
+  white-space: nowrap;
+}
 .sidebar {
-  width: 240px;
   min-height: calc(100vh - 70px);
 
   flex-shrink: 0;
@@ -16,14 +21,10 @@
   border-right: 1px solid var(--border-color);
 
   box-sizing: border-box;
-
+    width: 240px;
+  flex-shrink: 0;
   overflow: hidden;
-
-  transition:
-    width 0.25s ease,
-    opacity 0.2s ease,
-    background-color 0.25s ease,
-    border-color 0.25s ease;
+  transition: width 0.25s ease, opacity 0.2s ease;
 }
 
 /* =========================================================

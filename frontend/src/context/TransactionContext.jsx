@@ -106,14 +106,20 @@ export function TransactionProvider({ children }) {
     }
   };
 
-  const createCategory = async (nameOrData, type) => {
+  const createCategory = async (
+    nameOrData,
+    type
+  ) => {
     const token = getToken();
 
     if (!token) {
       throw new Error("You must be logged in.");
     }
 
-    const name = typeof nameOrData === "object" ? nameOrData?.name : nameOrData;
+    const name =
+      typeof nameOrData === "object"
+        ? nameOrData?.name
+        : nameOrData;
 
     const categoryType =
       typeof nameOrData === "object" ? nameOrData?.type : type;
@@ -153,7 +159,10 @@ export function TransactionProvider({ children }) {
     return newCategory;
   };
 
-  const updateCategory = async (categoryId, categoryData) => {
+  const updateCategory = async (
+    categoryId,
+    categoryData
+  ) => {
     const token = getToken();
 
     if (!token) {
@@ -201,7 +210,9 @@ export function TransactionProvider({ children }) {
     return updatedCategory;
   };
 
-  const deleteCategory = async (categoryId) => {
+  const deleteCategory = async (
+    categoryId
+  ) => {
     const token = getToken();
 
     if (!token) {
@@ -250,11 +261,9 @@ export function TransactionProvider({ children }) {
     }
   };
 
-  // =========================
-  // Add Transaction
-  // =========================
-
-  const addTransaction = async (transactionData) => {
+  const addTransaction = async (
+    transactionData
+  ) => {
     const token = getToken();
 
     if (!token) {
@@ -307,11 +316,10 @@ export function TransactionProvider({ children }) {
     return newTransaction;
   };
 
-  // =========================
-  // Update Transaction
-  // =========================
-
-  const updateTransaction = async (transactionId, transactionData) => {
+  const updateTransaction = async (
+    transactionId,
+    transactionData
+  ) => {
     const token = getToken();
 
     if (!token) {
@@ -351,11 +359,7 @@ export function TransactionProvider({ children }) {
     window.dispatchEvent(new Event("alertsChanged"));
 
     return data.data;
-  };
-
-  // =========================
-  // Delete Transaction
-  // =========================
+  } 
 
   const deleteTransaction = async (transactionId) => {
     const token = getToken();
@@ -387,9 +391,40 @@ export function TransactionProvider({ children }) {
     return data;
   };
 
-  // =========================
-  // Load After Authentication
-  // =========================
+
+  const transactionSummary = useMemo(() => {
+    let totalIncome = 0;
+    let totalExpenses = 0;
+
+    transactions.forEach(
+      (transaction) => {
+        const amount = Number(
+          transaction.amount || 0
+        );
+
+        if (
+          transaction.type === "income"
+        ) {
+          totalIncome += amount;
+        }
+
+        if (
+          transaction.type === "expense"
+        ) {
+          totalExpenses += amount;
+        }
+      }
+    );
+
+    return {
+      totalIncome,
+      totalExpenses,
+      currentBalance:
+        totalIncome -
+        totalExpenses,
+    };
+  }, [transactions]);
+
 
   useEffect(() => {
     if (authLoading) {
@@ -407,31 +442,6 @@ export function TransactionProvider({ children }) {
     fetchAllData();
   }, [user, authLoading]);
 
-  // =========================
-  // Transaction Summary
-  // =========================
-
-  const transactionSummary = useMemo(() => {
-    const totalIncome = transactions
-      .filter((transaction) => transaction.type === "income")
-      .reduce((total, transaction) => total + Number(transaction.amount || 0), 0);
-
-    const totalExpenses = transactions
-      .filter((transaction) => transaction.type === "expense")
-      .reduce((total, transaction) => total + Number(transaction.amount || 0), 0);
-
-    const currentBalance = totalIncome - totalExpenses;
-
-    return {
-      totalIncome,
-      totalExpenses,
-      currentBalance,
-    };
-  }, [transactions]);
-
-  // =========================
-  // Context Value
-  // =========================
 
   const value = {
     transactions,
@@ -462,6 +472,7 @@ export function TransactionProvider({ children }) {
     </TransactionContext.Provider>
   );
 }
+
 
 export function useTransactions() {
   const context = useContext(TransactionContext);
