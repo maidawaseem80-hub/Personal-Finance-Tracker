@@ -82,7 +82,7 @@ function ForgotPassword() {
         ) : (
           <div className="forgot-password-form">
             <p style={{ color: "#0a3c6e", fontWeight: 600 }}>
-              If that email exists, a reset link has been generated.
+              If the given email exists, a reset link has been generated and sent to that email.
             </p>
             
            {resetUrl && (

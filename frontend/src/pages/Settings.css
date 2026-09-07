@@ -1,3 +1,7 @@
+/* =========================================================
+   Settings Page
+========================================================= */
+
 .settings-page {
   max-width: 900px;
   margin: 0 auto;
@@ -14,12 +18,20 @@
   color: #666;
 }
 
+/* =========================================================
+   Sections
+========================================================= */
+
 .settings-sections {
   display: flex;
   flex-direction: column;
   gap: 24px;
   margin-top: 24px;
 }
+
+/* =========================================================
+   Settings Card
+========================================================= */
 
 .settings-card {
   background: #fff;
@@ -37,6 +49,7 @@
   margin: 0 0 16px;
   color: #777;
   font-size: 14px;
+  line-height: 1.5;
 }
 
 .settings-form,
@@ -158,6 +171,7 @@
 }
 
 .settings-switch input {
+  position: absolute;
   opacity: 0;
   width: 0;
   height: 0;
@@ -301,7 +315,7 @@
 
 /* ---------- Responsive ---------- */
 
-@media (max-width: 768px) {
+@media (max-width: 480px) {
   .settings-page {
     padding: 24px 16px;
   }

@@ -535,6 +535,11 @@ async function parseResponse(response) {
 function Settings() {
   const { user } = useAuth();
   const {
+    user,
+    updateUserPreferences,
+  } = useAuth();
+
+  const {
     categories,
     createCategory,
     updateCategory,
@@ -576,9 +581,8 @@ function Settings() {
   const [editingCategoryName, setEditingCategoryName] = useState("");
   const [editingCategoryType, setEditingCategoryType] = useState("expense");
 
-  const [categoryError, setCategoryError] = useState("");
-  const [categorySuccess, setCategorySuccess] = useState("");
-  const [categoryLoading, setCategoryLoading] = useState(false);
+  const [categoryError, setCategoryError] =
+    useState("");
 
   const getAuthHeaders = () => ({
     Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -687,35 +691,465 @@ function Settings() {
   const handleCreateCategory = async (event) => {
     event.preventDefault();
 
-    const trimmedName = categoryName.trim();
+  const [categoryLoading, setCategoryLoading] =
+    useState(false);
 
-    if (!trimmedName) {
-      setCategoryError("Category name is required.");
-      setCategorySuccess("");
+  // =========================================================
+  // Auth headers
+  // =========================================================
+
+  const getAuthHeaders = () => ({
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  });
+
+  // =========================================================
+  // Load profile fields from logged-in user
+  // =========================================================
+
+  useEffect(() => {
+    if (user) {
+      setFullName(
+        user.name ||
+          user.fullName ||
+          ""
+      );
+
+      setEmail(user.email || "");
+
+      // If preferences already exist in AuthContext,
+      // use them immediately.
+      if (user.preferences) {
+        setCurrency(
+          user.preferences.currency || "PKR"
+        );
+
+        setEmailNotifications(
+          user.preferences.emailNotifications ??
+            true
+        );
+      }
+    }
+  }, [user]);
+
+  // =========================================================
+  // Load preferences from backend
+  // =========================================================
+
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setPreferencesLoading(false);
+        return;
+      }
+
+      try {
+        setPreferencesLoading(true);
+        setPreferencesError("");
+
+        const response = await fetch(
+          `${API_URL}/auth/preferences`,
+          {
+            method: "GET",
+            headers: {
+              ...getAuthHeaders(),
+            },
+          }
+        );
+
+        const data =
+          await parseResponse(response);
+
+        if (!response.ok) {
+          throw new Error(
+            data.message ||
+              "Failed to load preferences."
+          );
+        }
+
+        const preferences =
+          data.data || {};
+
+        const savedCurrency =
+          preferences.currency || "PKR";
+
+        const savedEmailNotifications =
+          preferences.emailNotifications ??
+          true;
+
+        setCurrency(savedCurrency);
+
+        setEmailNotifications(
+          savedEmailNotifications
+        );
+
+        // Keep AuthContext synchronized with
+        // the preferences returned by backend.
+        updateUserPreferences({
+          currency: savedCurrency,
+          emailNotifications:
+            savedEmailNotifications,
+        });
+      } catch (error) {
+        console.error(
+          "Failed to load preferences:",
+          error
+        );
+
+        setPreferencesError(
+          error.message ||
+            "Failed to load preferences."
+        );
+      } finally {
+        setPreferencesLoading(false);
+      }
+    };
+
+    fetchPreferences();
+  }, []);
+
+  // =========================================================
+  // Save preferences
+  // =========================================================
+
+  const handleSavePreferences = async (
+    newCurrency = currency,
+    newEmailNotifications =
+      emailNotifications
+  ) => {
+    try {
+      setPreferencesSaving(true);
+      setPreferencesError("");
+      setPreferencesSuccess("");
+
+      const response = await fetch(
+        `${API_URL}/auth/preferences`,
+        {
+          method: "PUT",
+          headers: {
+            ...getAuthHeaders(),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            currency: newCurrency,
+            emailNotifications:
+              newEmailNotifications,
+          }),
+        }
+      );
+
+      const data =
+        await parseResponse(response);
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            "Failed to update preferences."
+        );
+      }
+
+      const updatedPreferences =
+        data.data || {};
+
+      const savedCurrency =
+        updatedPreferences.currency ||
+        newCurrency;
+
+      const savedEmailNotifications =
+        updatedPreferences.emailNotifications ??
+        newEmailNotifications;
+
+      // Update local Settings state
+      setCurrency(savedCurrency);
+
+      setEmailNotifications(
+        savedEmailNotifications
+      );
+
+      // IMPORTANT:
+      // Update AuthContext as well so the
+      // selected currency changes throughout
+      // the entire application immediately.
+      updateUserPreferences({
+        currency: savedCurrency,
+        emailNotifications:
+          savedEmailNotifications,
+      });
+
+      setPreferencesSuccess(
+        "Preferences updated successfully."
+      );
+    } catch (error) {
+      setCategoryError(error.message || "Failed to create category.");
+    } finally {
+      setPreferencesSaving(false);
+    }
+  };
+
+  // =========================================================
+  // Currency change
+  // =========================================================
+
+  const handleCurrencyChange = async (
+    event
+  ) => {
+    const newCurrency =
+      event.target.value;
+
+    // Update UI immediately
+    setCurrency(newCurrency);
+
+    await handleSavePreferences(
+      newCurrency,
+      emailNotifications
+    );
+  };
+
+  // =========================================================
+  // Email notification toggle
+  // =========================================================
+
+  const handleEmailNotificationsChange =
+    async (event) => {
+      const newValue =
+        event.target.checked;
+
+      setEmailNotifications(newValue);
+
+      await handleSavePreferences(
+        currency,
+        newValue
+      );
+    };
+
+  // =========================================================
+  // Profile handlers
+  // =========================================================
+
+  const handleSaveProfile = async () => {
+    const trimmedName =
+      fullName.trim();
+
+    const trimmedEmail =
+      email.trim();
+
+    if (
+      !trimmedName ||
+      !trimmedEmail
+    ) {
+      setProfileError(
+        "Full name and email are required."
+      );
+
+      setProfileSuccess("");
+
       return;
     }
 
     try {
-      setCategoryLoading(true);
-      setCategoryError("");
-      setCategorySuccess("");
+      setProfileLoading(true);
+      setProfileError("");
+      setProfileSuccess("");
 
-      await createCategory(trimmedName, categoryType);
+      const response = await fetch(
+        `${API_URL}/auth/profile`,
+        {
+          method: "PUT",
+          headers: {
+            ...getAuthHeaders(),
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            name: trimmedName,
+            email: trimmedEmail,
+          }),
+        }
+      );
 
-      setCategoryName("");
-      setCategoryType("expense");
-      setCategorySuccess("Category created successfully.");
+      const data =
+        await parseResponse(response);
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            "Failed to update profile."
+        );
+      }
+
+      setProfileSuccess(
+        "Profile updated successfully."
+      );
     } catch (error) {
-      setCategoryError(error.message || "Failed to create category.");
+      setCategoryError(error.message || "Failed to update category.");
     } finally {
-      setCategoryLoading(false);
+      setProfileLoading(false);
     }
   };
 
-  const handleStartEdit = (category) => {
-    setEditingCategoryId(category._id);
-    setEditingCategoryName(category.name);
-    setEditingCategoryType(category.type);
+  // =========================================================
+  // Password handlers
+  // =========================================================
+
+  const handleTogglePasswordForm =
+    () => {
+      setShowPasswordForm(
+        (prev) => !prev
+      );
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+
+      setShowCurrentPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
+
+      setPasswordError("");
+      setPasswordSuccess("");
+    };
+
+  const handleChangePassword = async (
+    event
+  ) => {
+    event.preventDefault();
+
+    if (
+      !currentPassword ||
+      !newPassword ||
+      !confirmPassword
+    ) {
+      setPasswordError(
+        "All password fields are required."
+      );
+
+      setPasswordSuccess("");
+
+      return;
+    }
+
+    if (
+      newPassword !==
+      confirmPassword
+    ) {
+      setPasswordError(
+        "New password and confirmation do not match."
+      );
+
+      setPasswordSuccess("");
+
+      return;
+    }
+
+    try {
+      setPasswordLoading(true);
+      setPasswordError("");
+      setPasswordSuccess("");
+
+      const response = await fetch(
+        `${API_URL}/auth/password`,
+        {
+          method: "PUT",
+          headers: {
+            ...getAuthHeaders(),
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            currentPassword,
+            newPassword,
+          }),
+        }
+      );
+
+      const data =
+        await parseResponse(response);
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            "Failed to change password."
+        );
+      }
+
+      setPasswordSuccess(
+        "Password changed successfully."
+      );
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+
+      setShowPasswordForm(false);
+    } catch (error) {
+      setCategoryError(error.message || "Failed to delete category.");
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  // =========================================================
+  // Category handlers
+  // =========================================================
+
+  const handleCreateCategory =
+    async (event) => {
+      event.preventDefault();
+
+      const trimmedName =
+        categoryName.trim();
+
+      if (!trimmedName) {
+        setCategoryError(
+          "Category name is required."
+        );
+
+        setCategorySuccess("");
+
+        return;
+      }
+
+      try {
+        setCategoryLoading(true);
+        setCategoryError("");
+        setCategorySuccess("");
+
+        await createCategory(
+          trimmedName,
+          categoryType
+        );
+
+        setCategoryName("");
+        setCategoryType("expense");
+
+        setCategorySuccess(
+          "Category created successfully."
+        );
+      } catch (error) {
+        setCategoryError(
+          error.message ||
+            "Failed to create category."
+        );
+      } finally {
+        setCategoryLoading(false);
+      }
+    };
+
+  const handleStartEdit = (
+    category
+  ) => {
+    setEditingCategoryId(
+      category._id
+    );
+
+    setEditingCategoryName(
+      category.name
+    );
+
+    setEditingCategoryType(
+      category.type
+    );
 
     setCategoryError("");
     setCategorySuccess("");
@@ -728,66 +1162,101 @@ function Settings() {
     setCategoryError("");
   };
 
-  const handleUpdateCategory = async (event, categoryId) => {
-    event.preventDefault();
+  const handleUpdateCategory =
+    async (
+      event,
+      categoryId
+    ) => {
+      event.preventDefault();
 
-    const trimmedName = editingCategoryName.trim();
+      const trimmedName =
+        editingCategoryName.trim();
 
-    if (!trimmedName) {
-      setCategoryError("Category name is required.");
-      setCategorySuccess("");
-      return;
-    }
+      if (!trimmedName) {
+        setCategoryError(
+          "Category name is required."
+        );
 
-    try {
-      setCategoryLoading(true);
-      setCategoryError("");
-      setCategorySuccess("");
+        setCategorySuccess("");
 
-      await updateCategory(categoryId, {
-        name: trimmedName,
-        type: editingCategoryType,
-      });
-
-      setEditingCategoryId(null);
-      setEditingCategoryName("");
-      setEditingCategoryType("expense");
-
-      setCategorySuccess("Category updated successfully.");
-    } catch (error) {
-      setCategoryError(error.message || "Failed to update category.");
-    } finally {
-      setCategoryLoading(false);
-    }
-  };
-
-  const handleDeleteCategory = async (categoryId) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this category?"
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setCategoryLoading(true);
-      setCategoryError("");
-      setCategorySuccess("");
-
-      await deleteCategory(categoryId);
-
-      if (editingCategoryId === categoryId) {
-        handleCancelEdit();
+        return;
       }
 
-      setCategorySuccess("Category deleted successfully.");
-    } catch (error) {
-      setCategoryError(error.message || "Failed to delete category.");
-    } finally {
-      setCategoryLoading(false);
-    }
-  };
+      try {
+        setCategoryLoading(true);
+        setCategoryError("");
+        setCategorySuccess("");
+
+        await updateCategory(
+          categoryId,
+          {
+            name: trimmedName,
+            type: editingCategoryType,
+          }
+        );
+
+        setEditingCategoryId(null);
+        setEditingCategoryName("");
+        setEditingCategoryType(
+          "expense"
+        );
+
+        setCategorySuccess(
+          "Category updated successfully."
+        );
+      } catch (error) {
+        setCategoryError(
+          error.message ||
+            "Failed to update category."
+        );
+      } finally {
+        setCategoryLoading(false);
+      }
+    };
+
+  const handleDeleteCategory =
+    async (categoryId) => {
+      const confirmed =
+        window.confirm(
+          "Are you sure you want to delete this category?"
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        setCategoryLoading(true);
+        setCategoryError("");
+        setCategorySuccess("");
+
+        await deleteCategory(
+          categoryId
+        );
+
+        if (
+          editingCategoryId ===
+          categoryId
+        ) {
+          handleCancelEdit();
+        }
+
+        setCategorySuccess(
+          "Category deleted successfully."
+        );
+      } catch (error) {
+        setCategoryError(
+          error.message ||
+            "Failed to delete category."
+        );
+      } finally {
+        setCategoryLoading(false);
+      }
+    };
+
+  // =========================================================
+  // Render
+  // =========================================================
 
   return (
     <div className="settings-page">
@@ -797,7 +1266,11 @@ function Settings() {
       </div>
 
       <div className="settings-sections">
-        {/* Profile */}
+
+        {/* =====================================================
+            Profile
+        ===================================================== */}
+
         <section className="settings-card">
           <div className="settings-card-header">
             <h2>Profile</h2>
@@ -852,7 +1325,10 @@ function Settings() {
           </div>
         </section>
 
-        {/* Preferences */}
+        {/* =====================================================
+            Preferences
+        ===================================================== */}
+
         <section className="settings-card">
           <div className="settings-card-header">
             <h2>Preferences</h2>
@@ -860,6 +1336,9 @@ function Settings() {
           </div>
 
           <div className="settings-options">
+
+            {/* Currency */}
+
             <div className="settings-option">
               <div>
                 <h3>Currency</h3>
@@ -874,6 +1353,8 @@ function Settings() {
               </select>
             </div>
 
+            {/* Email Notifications */}
+
             <div className="settings-option">
               <div>
                 <h3>Email Notifications</h3>
@@ -885,10 +1366,28 @@ function Settings() {
                 <span></span>
               </label>
             </div>
+
+            {/* Preference messages */}
+
+            {preferencesError && (
+              <p className="category-message category-error">
+                {preferencesError}
+              </p>
+            )}
+
+            {preferencesSuccess && (
+              <p className="category-message category-success">
+                {preferencesSuccess}
+              </p>
+            )}
+
           </div>
         </section>
 
-        {/* Categories */}
+        {/* =====================================================
+            Categories
+        ===================================================== */}
+
         <section className="settings-card">
           <div className="settings-card-header">
             <h2>Categories</h2>
@@ -904,7 +1403,9 @@ function Settings() {
                 value={categoryName}
                 onChange={(event) => setCategoryName(event.target.value)}
                 placeholder="e.g. Food, Salary, Transport"
-                disabled={categoryLoading}
+                disabled={
+                  categoryLoading
+                }
               />
             </div>
 
@@ -924,7 +1425,9 @@ function Settings() {
             <button
               type="submit"
               className="settings-primary-button"
-              disabled={categoryLoading}
+              disabled={
+                categoryLoading
+              }
             >
               {categoryLoading ? "Adding..." : "Add Category"}
             </button>
@@ -980,9 +1483,13 @@ function Settings() {
                             />
                           </div>
 
-                          <div className="settings-field">
-                            <label
-                              htmlFor={`edit-category-type-${category._id}`}
+                          <div className="category-edit-actions">
+                            <button
+                              type="submit"
+                              className="settings-primary-button"
+                              disabled={
+                                categoryLoading
+                              }
                             >
                               Type
                             </label>
@@ -992,33 +1499,69 @@ function Settings() {
                               onChange={(event) =>
                                 setEditingCategoryType(event.target.value)
                               }
-                              disabled={categoryLoading}
                             >
                               <option value="expense">Expense</option>
                               <option value="income">Income</option>
                             </select>
                           </div>
+                        </form>
+                      );
+                    }
+
+                    return (
+                      <div
+                        className="category-item"
+                        key={
+                          category._id
+                        }
+                      >
+                        <div className="category-item-info">
+                          <strong>
+                            {category.name}
+                          </strong>
+
+                          <span
+                            className={`category-type ${category.type}`}
+                          >
+                            {category.type ===
+                            "income"
+                              ? "Income"
+                              : "Expense"}
+                          </span>
                         </div>
 
-                        <div className="category-edit-actions">
+                        <div className="category-actions">
                           <button
-                            type="submit"
-                            className="settings-primary-button"
-                            disabled={categoryLoading}
+                            type="button"
+                            className="settings-edit-button"
+                            onClick={() =>
+                              handleStartEdit(
+                                category
+                              )
+                            }
+                            disabled={
+                              categoryLoading
+                            }
                           >
                             {categoryLoading ? "Saving..." : "Save"}
                           </button>
 
                           <button
                             type="button"
-                            className="settings-secondary-button"
-                            onClick={handleCancelEdit}
-                            disabled={categoryLoading}
+                            className="settings-danger-button"
+                            onClick={() =>
+                              handleDeleteCategory(
+                                category._id
+                              )
+                            }
+                            disabled={
+                              categoryLoading
+                            }
                           >
-                            Cancel
+                            Delete
                           </button>
                         </div>
-                      </form>
+                      </div>
                     );
                   }
 
@@ -1058,7 +1601,10 @@ function Settings() {
           </div>
         </section>
 
-        {/* Security */}
+        {/* =====================================================
+            Security
+        ===================================================== */}
+
         <section className="settings-card">
           <div className="settings-card-header">
             <h2>Security</h2>

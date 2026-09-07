@@ -1,21 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
 import { useAlerts } from "../context/AlertContext";
+import { useTheme } from "../context/ThemeContext";
 
 import "./Navbar.css";
 
 function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [shake, setShake] = useState(false);
 
   const { logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const {
     alerts,
     unreadCount,
     loading: alertsLoading,
+    markAlertsAsRead,
   } = useAlerts();
+
+  const previousUnreadCount = useRef(unreadCount);
 
   const navigate = useNavigate();
 
@@ -43,21 +49,82 @@ function Navbar() {
     });
   };
 
+  useEffect(() => {
+    if (unreadCount > previousUnreadCount.current) {
+      setShake(true);
+
+      const audioContext = new (
+        window.AudioContext || window.webkitAudioContext
+      )();
+
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 880;
+      gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioContext.currentTime + 0.3
+      );
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.3);
+
+      const timeout = setTimeout(() => setShake(false), 600);
+
+      previousUnreadCount.current = unreadCount;
+
+      return () => clearTimeout(timeout);
+    }
+
+    previousUnreadCount.current = unreadCount;
+  }, [unreadCount]);
+
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <span className="navbar-logo">💰</span>
+        <span className="navbar-logo">📊</span>
         <span>Personal Finance Tracker</span>
       </div>
 
       <div className="navbar-actions">
+
+        {/* Theme Toggle */}
+        <button
+          className="theme-toggle-button"
+          type="button"
+          onClick={toggleTheme}
+          aria-label={
+            theme === "light" ? "Switch to dark mode" : "Switch to light mode"
+          }
+          title={
+            theme === "light" ? "Switch to dark mode" : "Switch to light mode"
+          }
+        >
+          <span className="theme-toggle-icon">
+            {theme === "light" ? "🌙" : "☀️"}
+          </span>
+        </button>
+
+        {/* Notifications */}
         <div className="notification-wrapper">
           <button
-            className="notification-button"
+            className={`notification-button${shake ? " shake" : ""}`}
             type="button"
-            onClick={() =>
-              setShowNotifications((previous) => !previous)
-            }
+            onClick={() => {
+              setShowNotifications((previous) => {
+                const next = !previous;
+
+                if (next && unreadCount > 0) {
+                  markAlertsAsRead();
+                }
+
+                return next;
+              });
+            }}
             aria-label="Notifications"
           >
             <span className="notification-icon">🔔</span>
@@ -100,9 +167,7 @@ function Navbar() {
                       }`}
                       key={alert._id}
                     >
-                      <div className="notification-item-icon">
-                        ⚠️
-                      </div>
+                      <div className="notification-item-icon">⚠️</div>
 
                       <div className="notification-item-content">
                         <strong>Budget Alert</strong>
@@ -110,9 +175,7 @@ function Navbar() {
                         <p>{alert.message}</p>
 
                         <span>
-                          {formatNotificationDate(
-                            alert.createdAt
-                          )}
+                          {formatNotificationDate(alert.createdAt)}
                         </span>
                       </div>
                     </div>
@@ -122,9 +185,7 @@ function Navbar() {
 
               {!alertsLoading && alerts.length === 0 && (
                 <div className="notification-empty">
-                  <div className="notification-empty-icon">
-                    🔔
-                  </div>
+                  <div className="notification-empty-icon">🔔</div>
 
                   <strong>No notifications</strong>
 

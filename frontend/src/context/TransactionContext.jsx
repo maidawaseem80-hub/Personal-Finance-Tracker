@@ -52,28 +52,18 @@ export function TransactionProvider({ children }) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to fetch transactions."
-        );
+        throw new Error(data.message || "Failed to fetch transactions.");
       }
 
-      const transactionData = Array.isArray(data.data)
-        ? data.data
-        : [];
+      const transactionData = Array.isArray(data.data) ? data.data : [];
 
       setTransactions(transactionData);
 
       return transactionData;
     } catch (error) {
-      console.error(
-        "Failed to fetch transactions:",
-        error
-      );
+      console.error("Failed to fetch transactions:", error);
 
-      setError(
-        error.message ||
-          "Failed to fetch transactions."
-      );
+      setError(error.message || "Failed to fetch transactions.");
 
       setTransactions([]);
 
@@ -90,38 +80,25 @@ export function TransactionProvider({ children }) {
     }
 
     try {
-      const response = await fetch(
-        `${API_URL}/categories`,
-        {
-          headers: getAuthHeaders(),
-        }
-      );
+      const response = await fetch(`${API_URL}/categories`, {
+        headers: getAuthHeaders(),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to fetch categories."
-        );
+        throw new Error(data.message || "Failed to fetch categories.");
       }
 
-      const categoryData = Array.isArray(data.data)
-        ? data.data
-        : [];
+      const categoryData = Array.isArray(data.data) ? data.data : [];
 
       setCategories(categoryData);
 
       return categoryData;
     } catch (error) {
-      console.error(
-        "Failed to fetch categories:",
-        error
-      );
+      console.error("Failed to fetch categories:", error);
 
-      setError(
-        error.message ||
-          "Failed to fetch categories."
-      );
+      setError(error.message || "Failed to fetch categories.");
 
       setCategories([]);
 
@@ -145,57 +122,39 @@ export function TransactionProvider({ children }) {
         : nameOrData;
 
     const categoryType =
-      typeof nameOrData === "object"
-        ? nameOrData?.type
-        : type;
+      typeof nameOrData === "object" ? nameOrData?.type : type;
 
-    const trimmedName = String(
-      name || ""
-    ).trim();
+    const trimmedName = String(name || "").trim();
 
     if (!trimmedName) {
       throw new Error("Category name is required.");
     }
 
-    if (
-      categoryType !== "income" &&
-      categoryType !== "expense"
-    ) {
-      throw new Error(
-        "Category type must be income or expense."
-      );
+    if (categoryType !== "income" && categoryType !== "expense") {
+      throw new Error("Category type must be income or expense.");
     }
 
-    const response = await fetch(
-      `${API_URL}/categories`,
-      {
-        method: "POST",
-        headers: {
-          ...getAuthHeaders(),
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: trimmedName,
-          type: categoryType,
-        }),
-      }
-    );
+    const response = await fetch(`${API_URL}/categories`, {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: trimmedName,
+        type: categoryType,
+      }),
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Failed to create category."
-      );
+      throw new Error(data.message || "Failed to create category.");
     }
 
     const newCategory = data.data;
 
-    setCategories((currentCategories) => [
-      newCategory,
-      ...currentCategories,
-    ]);
+    setCategories((currentCategories) => [newCategory, ...currentCategories]);
 
     return newCategory;
   };
@@ -210,9 +169,7 @@ export function TransactionProvider({ children }) {
       throw new Error("You must be logged in.");
     }
 
-    const name = String(
-      categoryData?.name || ""
-    ).trim();
+    const name = String(categoryData?.name || "").trim();
 
     const type = categoryData?.type;
 
@@ -220,46 +177,33 @@ export function TransactionProvider({ children }) {
       throw new Error("Category name is required.");
     }
 
-    if (
-      type !== "income" &&
-      type !== "expense"
-    ) {
-      throw new Error(
-        "Category type must be income or expense."
-      );
+    if (type !== "income" && type !== "expense") {
+      throw new Error("Category type must be income or expense.");
     }
 
-    const response = await fetch(
-      `${API_URL}/categories/${categoryId}`,
-      {
-        method: "PUT",
-        headers: {
-          ...getAuthHeaders(),
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          type,
-        }),
-      }
-    );
+    const response = await fetch(`${API_URL}/categories/${categoryId}`, {
+      method: "PUT",
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        type,
+      }),
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Failed to update category."
-      );
+      throw new Error(data.message || "Failed to update category.");
     }
 
     const updatedCategory = data.data;
 
     setCategories((currentCategories) =>
       currentCategories.map((category) =>
-        category._id === categoryId
-          ? updatedCategory
-          : category
+        category._id === categoryId ? updatedCategory : category
       )
     );
 
@@ -275,28 +219,19 @@ export function TransactionProvider({ children }) {
       throw new Error("You must be logged in.");
     }
 
-    const response = await fetch(
-      `${API_URL}/categories/${categoryId}`,
-      {
-        method: "DELETE",
-        headers: getAuthHeaders(),
-      }
-    );
+    const response = await fetch(`${API_URL}/categories/${categoryId}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Failed to delete category."
-      );
+      throw new Error(data.message || "Failed to delete category.");
     }
 
     setCategories((currentCategories) =>
-      currentCategories.filter(
-        (category) =>
-          category._id !== categoryId
-      )
+      currentCategories.filter((category) => category._id !== categoryId)
     );
 
     return data;
@@ -316,20 +251,11 @@ export function TransactionProvider({ children }) {
       setLoading(true);
       setError("");
 
-      await Promise.all([
-        fetchTransactions(),
-        fetchCategories(),
-      ]);
+      await Promise.all([fetchTransactions(), fetchCategories()]);
     } catch (error) {
-      console.error(
-        "Failed to load transaction data:",
-        error
-      );
+      console.error("Failed to load transaction data:", error);
 
-      setError(
-        error.message ||
-          "Failed to load transaction data."
-      );
+      setError(error.message || "Failed to load transaction data.");
     } finally {
       setLoading(false);
     }
@@ -344,65 +270,47 @@ export function TransactionProvider({ children }) {
       throw new Error("You must be logged in.");
     }
 
-    const response = await fetch(
-      `${API_URL}/transactions`,
-      {
-        method: "POST",
-        headers: {
-          ...getAuthHeaders(),
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount: Number(
-            transactionData.amount
-          ),
-          type: transactionData.type,
-          category: transactionData.category,
-          note:
-            transactionData.note ||
-            transactionData.description ||
-            "",
-          date: transactionData.date,
-        }),
-      }
-    );
+    const response = await fetch(`${API_URL}/transactions`, {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: Number(transactionData.amount),
+        type: transactionData.type,
+        category: transactionData.category,
+        note: transactionData.note || transactionData.description || "",
+        date: transactionData.date,
+      }),
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Failed to add transaction."
-      );
+      throw new Error(data.message || "Failed to add transaction.");
     }
 
     let newTransaction = data.data;
 
     try {
-      const refreshed =
-        await fetchTransactions();
+      const refreshed = await fetchTransactions();
 
-      const createdTransaction =
-        refreshed.find(
-          (transaction) =>
-            transaction._id ===
-            newTransaction?._id
-        );
-
-      if (createdTransaction) {
-        newTransaction =
-          createdTransaction;
-      }
-    } catch (error) {
-      console.error(
-        "Failed to refresh transactions:",
-        error
+      const createdTransaction = refreshed.find(
+        (transaction) => transaction._id === newTransaction?._id
       );
 
-      setTransactions((current) => [
-        newTransaction,
-        ...current,
-      ]);
+      if (createdTransaction) {
+        newTransaction = createdTransaction;
+      }
+    } catch (error) {
+      console.error("Failed to refresh transactions:", error);
+
+      setTransactions((current) => [newTransaction, ...current]);
+    }
+
+    if (transactionData.type === "expense") {
+      window.dispatchEvent(new Event("alertsChanged"));
     }
 
     return newTransaction;
@@ -427,15 +335,10 @@ export function TransactionProvider({ children }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: Number(
-            transactionData.amount
-          ),
+          amount: Number(transactionData.amount),
           type: transactionData.type,
           category: transactionData.category,
-          note:
-            transactionData.note ||
-            transactionData.description ||
-            "",
+          note: transactionData.note || transactionData.description || "",
           date: transactionData.date,
         }),
       }
@@ -444,26 +347,21 @@ export function TransactionProvider({ children }) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Failed to update transaction."
-      );
+      throw new Error(data.message || "Failed to update transaction.");
     }
 
     setTransactions((current) =>
       current.map((transaction) =>
-        transaction._id === transactionId
-          ? data.data
-          : transaction
+        transaction._id === transactionId ? data.data : transaction
       )
     );
+
+    window.dispatchEvent(new Event("alertsChanged"));
 
     return data.data;
   } 
 
-  const deleteTransaction = async (
-    transactionId
-  ) => {
+  const deleteTransaction = async (transactionId) => {
     const token = getToken();
 
     if (!token) {
@@ -481,18 +379,14 @@ export function TransactionProvider({ children }) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Failed to delete transaction."
-      );
+      throw new Error(data.message || "Failed to delete transaction.");
     }
 
     setTransactions((current) =>
-      current.filter(
-        (transaction) =>
-          transaction._id !== transactionId
-      )
+      current.filter((transaction) => transaction._id !== transactionId)
     );
+
+    window.dispatchEvent(new Event("alertsChanged"));
 
     return data;
   };
@@ -569,14 +463,11 @@ export function TransactionProvider({ children }) {
     createCategory,
     updateCategory,
     deleteCategory,
-
     transactionSummary,
   };
 
   return (
-    <TransactionContext.Provider
-      value={value}
-    >
+    <TransactionContext.Provider value={value}>
       {children}
     </TransactionContext.Provider>
   );
@@ -584,14 +475,10 @@ export function TransactionProvider({ children }) {
 
 
 export function useTransactions() {
-  const context = useContext(
-    TransactionContext
-  );
+  const context = useContext(TransactionContext);
 
   if (!context) {
-    throw new Error(
-      "useTransactions must be used inside a TransactionProvider"
-    );
+    throw new Error("useTransactions must be used inside a TransactionProvider");
   }
 
   return context;

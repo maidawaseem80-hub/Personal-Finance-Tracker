@@ -1,4 +1,5 @@
 import express from "express";
+
 import {
   registerUser,
   loginUser,
@@ -10,16 +11,25 @@ import {
 } from "../controllers/auth.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 
+import { protect } from "../middleware/auth.middleware.js";
+
 const router = express.Router();
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/me", protect, getMe);
 
-router.post("/forgot-password", forgotPassword);
+router.get(
+  "/preferences",
+  protect,
+  getPreferences
+);
 
-// IMPORTANT
-router.put("/reset-password/:token", resetPassword);
+router.put(
+  "/preferences",
+  protect,
+  updatePreferences
+);
 
 // Profile & security
 router.put("/profile", protect, updateProfile);
